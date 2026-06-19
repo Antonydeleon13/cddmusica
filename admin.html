@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDDMúsica | Panel Administrativo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Geist:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Geist', sans-serif; background: #050505; color: white; }
+        h1, h2 { font-family: 'Cinzel', serif; letter-spacing: 0.2em; }
+        .text-gold { color: #D4AF37; }
+        .bg-premium { background: rgba(13, 13, 13, 0.95); }
+        .border-gold { border: 1px solid #D4AF37; }
+    </style>
+</head>
+<body class="p-4 md:p-12">
+
+    <div class="max-w-7xl mx-auto mb-12 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl uppercase tracking-widest text-white">Solicitudes Recibidas</h1>
+        </div>
+        <div class="text-[10px] text-gold uppercase tracking-widest animate-pulse">● Conectado a tiempo real</div>
+    </div>
+
+    <div class="max-w-7xl mx-auto bg-premium border border-gray-800 rounded-lg overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-black border-b border-gray-800 uppercase text-[10px] tracking-widest text-gray-500">
+                <tr>
+                    <th class="p-6">Solicitante</th>
+                    <th class="p-6">Contacto</th>
+                    <th class="p-6">Evento</th>
+                    <th class="p-6">Fecha</th>
+                    <th class="p-6 text-right">Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tablaInvitaciones" class="divide-y divide-gray-900">
+                </tbody>
+        </table>
+    </div>
+
+    <div id="drawer" class="fixed right-0 top-0 h-full w-full md:w-[500px] bg-black border-l border-gold/30 p-10 transform translate-x-full transition-transform duration-500 shadow-2xl z-50 overflow-y-auto">
+        <button onclick="closeDrawer()" class="text-gold mb-8 hover:text-white transition uppercase text-[10px] tracking-widest">Cerrar Detalle ✕</button>
+        <div id="detalle-contenido" class="space-y-6 text-sm text-gray-300"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY_AQUI",
+            authDomain: "cddmusica-d8f92.firebaseapp.com",
+            projectId: "cddmusica-d8f92",
+            storageBucket: "cddmusica-d8f92.firebasestorage.app",
+            appId: "1:490870638033:web:af7075a3da6be99ca1ccf0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Diccionario de banderas
+        const paises = {
+    // Norteamérica
+    "México": "mx", "Estados Unidos": "us", "Canadá": "ca",
+    // Centroamérica
+    "Guatemala": "gt", "El Salvador": "sv", "Honduras": "hn", "Nicaragua": "ni", 
+    "Costa Rica": "cr", "Panamá": "pa",
+    // Caribe
+    "República Dominicana": "do", "Puerto Rico": "pr", "Cuba": "cu",
+    // Sudamérica
+    "Colombia": "co", "Argentina": "ar", "Chile": "cl", "Perú": "pe", 
+    "Venezuela": "ve", "Ecuador": "ec", "Bolivia": "bo", "Paraguay": "py", 
+    "Uruguay": "uy",
+    // Europa
+    "España": "es"
+};
+
+        const q = query(collection(db, "invitaciones"), orderBy("fechaRegistro", "desc"));
+
+        onSnapshot(q, (snapshot) => {
+            const tabla = document.getElementById('tablaInvitaciones');
+            tabla.innerHTML = "";
+            
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const pais = data.ubicacion?.split(',').pop()?.trim();
+                const flag = paises[pais] || 'un';
+
+                tabla.innerHTML += `
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="p-6">
+                            <div class="flex items-center gap-3">
+                                <img src="https://flagcdn.com/24x18/${flag}.png" alt="flag" class="rounded shadow-md">
+                                <span class="font-bold text-white">${data.iglesia}</span>
+                            </div>
+                        </td>
+                        <td class="p-6">${data.contacto}</td>
+                        <td class="p-6 text-gold italic">${data.tipo_evento || 'N/A'}</td>
+                        <td class="p-6">${data.fecha}</td>
+                        <td class="p-6 text-right">
+                            <button onclick='abrirDetalle(${JSON.stringify(data)})' class="text-[10px] uppercase border border-gray-700 px-4 py-2 hover:border-gold hover:text-gold transition">Ver más</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        });
+
+      window.abrirDetalle = (data) => {
+    // Función para traducir códigos técnicos a lenguaje humano
+    const traducir = (valor) => {
+        const mapa = {
+            "culto": "Culto o Servicio Regular",
+            "congreso": "Congreso / Campamento",
+            "concierto": "Concierto / Noche de Adoración",
+            "4voz_4musicos": "4 Voces + 4 Músicos + Ingeniero",
+            "2voz_4musicos": "2 Voces + 4 Músicos + Ingeniero",
+            "si_pro": "Sistema completo y profesional",
+            "limitado": "Sistema limitado",
+            "no": "Requiere apoyo técnico",
+            "combustible": "Costo de combustible y peajes",
+            "vuelos": "Vuelos y transporte local",
+            "menos45": "Menos de 45 minutos",
+            "45a115": "45 min - 1 hora 15 min",
+            "mas130": "Más de 1 hora 30 min"
+        };
+        return mapa[valor] || valor || "No especificado";
+    };
+
+    const container = document.getElementById('detalle-contenido');
+    container.innerHTML = `
+        <h2 class="text-2xl text-gold font-bold mb-6">${data.iglesia}</h2>
+        
+        <div class="space-y-4 border-b border-gray-900 pb-6">
+            <h3 class="text-[10px] text-white uppercase tracking-widest opacity-50">Datos de Contacto</h3>
+            <p class="text-gray-300"><strong>Titular:</strong> ${data.contacto}</p>
+            <p class="text-gray-300"><strong>Email:</strong> ${data.email}</p>
+            <p class="text-gray-300"><strong>Teléfono:</strong> ${data.telefono}</p>
+        </div>
+
+        <div class="space-y-4 border-b border-gray-900 pb-6">
+            <h3 class="text-[10px] text-white uppercase tracking-widest opacity-50 pt-2">Detalles del Evento</h3>
+            <p class="text-gray-300"><strong>Tipo:</strong> ${traducir(data.tipo_evento)}</p>
+            <p class="text-gray-300"><strong>Fecha:</strong> ${data.fecha || 'N/A'}</p>
+            <p class="text-gray-300"><strong>Ubicación:</strong> ${data.ubicacion}</p>
+        </div>
+
+        <div class="space-y-4 border-b border-gray-900 pb-6">
+            <h3 class="text-[10px] text-white uppercase tracking-widest opacity-50 pt-2">Logística y Técnico</h3>
+            <p class="text-gray-300"><strong>Formato:</strong> ${traducir(data.formato)}</p>
+            <p class="text-gray-300"><strong>Sonido:</strong> ${traducir(data.sonido)}</p>
+            <p class="text-gray-300"><strong>Transporte:</strong> ${traducir(data.transporte)}</p>
+        </div>
+
+        <div class="space-y-2 pt-2">
+            <h3 class="text-[10px] text-white uppercase tracking-widest opacity-50">Expectativas</h3>
+            <p class="text-gray-400 italic text-sm">"${data.expectativas || 'Sin comentarios'}"</p>
+        </div>
+    `;
+    document.getElementById('drawer').classList.remove('translate-x-full');
+};
+
+        window.closeDrawer = () => document.getElementById('drawer').classList.add('translate-x-full');
+    </script>
+</body>
+</html>

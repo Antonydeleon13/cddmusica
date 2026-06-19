@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Invitación | Ministerio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Geist:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <style>
+        :root { 
+            --gold: #D4AF37; 
+            --matte-black: #000000; 
+            --premium-gray: #1a1a1a;
+            --pure-white: #FFFFFF; 
+            --mid-gray: #333333; 
+        }
+        
+        body { 
+    background-color: transparent !important; /* Cambiado para dejar ver el fondo */
+    color: var(--pure-white); 
+    font-family: 'Geist', sans-serif; 
+    overflow-x: hidden;
+    margin: 0; /* Asegura que no haya márgenes blancos extraños */
+}
+        
+        /* Tipografía Premium */
+        h1, h2, h3 { 
+            font-family: 'Cinzel', serif; 
+            letter-spacing: 0.15em; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            text-rendering: optimizeLegibility;
+        }
+
+        p {
+            color: #b0b0b0; /* Gris más suave para el texto */
+        }
+        
+        /* Estilos de inputs de lujo */
+        input, select, textarea { 
+            background: rgba(255, 255, 255, 0.03) !important; 
+            border: 1px solid rgba(255, 255, 255, 0.08) !important; 
+            color: white !important; 
+            padding: 16px; 
+            border-radius: 4px; 
+            width: 100%; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        
+        input:focus, select:focus, textarea:focus { 
+            border-color: var(--gold) !important; 
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.15) !important; 
+            outline: none; 
+            background: rgba(255, 255, 255, 0.05) !important; 
+        }
+        
+        input::placeholder { 
+            color: rgba(255, 255, 255, 0.3); 
+            font-weight: 300; 
+        }
+        
+        /* Botón de lujo estilo Black Card */
+        .btn-luxury { 
+            background: #0d0d0d; 
+            color: var(--gold); 
+            border: 2px solid var(--gold); 
+            font-family: 'Cinzel', serif; 
+            letter-spacing: 0.15em; 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); 
+        }
+        
+        .btn-luxury:hover { 
+            background: var(--gold); 
+            color: black; 
+            border-color: var(--gold); 
+            box-shadow: 0 6px 15px rgba(212, 175, 55, 0.3); 
+            transform: translateY(-2px); 
+        }
+        
+        /* Contenedor principal con sombra premium */
+        .premium-container { 
+            background: rgba(13, 13, 13, 0.98); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        /* Sección de secciones */
+        .seccion-borde {
+            position: relative;
+        }
+
+        .seccion-borde h2 {
+            display: inline-block;
+            background-color: var(--premium-gray);
+            padding: 0 20px;
+            margin-bottom: -1px; /* Para ocultar la línea del borde superior */
+        }
+
+
+        .obligatorio::after {
+    content: " *";
+    color: red;
+}
+
+
+    </style>
+</head>
+<body class="py-12 px-4 md:py-24">
+
+<div class="max-w-4xl mx-auto">
+    <div class="text-center mb-20">
+    <div class="inline-flex items-center justify-center mb-10">
+        <img src="logo.png" alt="Logo Ministerio" class="h-16 opacity-90 filter brightness-0 invert transition-all hover:opacity-100" style="max-height: 64px;">
+    </div>
+    
+    <div class="relative overflow-hidden rounded-xl mb-12 shadow-2xl border border-gray-800">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 z-10"></div>
+        
+        <img src="team.jpg" alt="Portada Ministerio" class="w-full h-96 object-cover object-center transform hover:scale-105 transition-transform duration-700">
+        
+        <div class="absolute bottom-6 left-6 z-20 text-left">
+            <span class="text-[10px] uppercase tracking-[0.3em] text-gold font-bold bg-black/50 px-3 py-1 rounded border border-gold/30">
+                CDDMúsica | En Tour 2026
+            </span>
+        </div>
+    </div>
+</div>
+
+    <div class="premium-container p-10 md:p-16 rounded-xl shadow-inner">
+        <h1 class="text-4xl text-center text-white mb-10 tracking-widest font-extrabold">Solicitud de Invitación</h1>
+        <p class="text-center mb-16 max-w-2xl mx-auto font-light leading-relaxed">
+            Cada invitación es un compromiso sagrado que asumimos con total responsabilidad. Con el fin de evaluar la viabilidad técnica, logística y financiera de su evento, y asegurar que podamos brindarles la excelencia que merecen, les solicitamos completar este breve formulario.
+            <span class="block mt-4 text-xs italic text-gray-600 font-normal">Nota: Aunque nuestro motor principal es servir y no manejamos una tarifa comercial fija, requerimos la cobertura de viáticos mínimos y condiciones técnicas básicas.</span>
+        </p>
+
+    <div class="flex flex-wrap justify-center gap-4 mb-10 border-b border-gray-900 pb-6">
+    
+    <button type="button" onclick="showTab(0)" class="tab-btn flex flex-col items-center gap-2 px-6 py-2 uppercase tracking-widest text-gold border-b-2 border-gold transition-all">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        <span class="text-[10px]">Info</span>
+    </button>
+
+    <button type="button" onclick="showTab(1)" class="tab-btn flex flex-col items-center gap-2 px-6 py-2 uppercase tracking-widest text-gray-500 hover:text-white transition-all">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <span class="text-[10px]">Dinámica</span>
+    </button>
+
+    <button type="button" onclick="showTab(2)" class="tab-btn flex flex-col items-center gap-2 px-6 py-2 uppercase tracking-widest text-gray-500 hover:text-white transition-all">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 110 4H5.5a2.5 2.5 0 00-2.5 2.5V16"></path></svg>
+        <span class="text-[10px]">Logística</span>
+    </button>
+
+    <button type="button" onclick="showTab(3)" class="tab-btn flex flex-col items-center gap-2 px-6 py-2 uppercase tracking-widest text-gray-500 hover:text-white transition-all">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+        <span class="text-[10px]">Técnico</span>
+    </button>
+</div>
+
+<form id="formInvitacion" class="space-y-16">
+    
+    <div class="tab-content space-y-8 seccion-borde border-t border-gray-900 pt-8">
+        <h2 class="text-2xl text-white">1. Información General</h2>
+        <div class="space-y-3">
+            <label class="text-xs text-gray-500 tracking-wider obligatorio">Iglesia, organización o ministerio solicitante</label>
+            <input type="text" id="iglesia" placeholder="Ej: Iglesia Central Vida Eterna">
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-3">
+                <label class="text-xs text-gray-500 tracking-wider obligatorio">Contacto principal / organizador</label>
+                <input type="text" id="contacto" placeholder="Ej: Pastor Juan Pérez">
+            </div>
+            <div class="space-y-3">
+                <label class="text-xs text-gray-500 tracking-wider obligatorio">Teléfono de contacto (con WhatsApp)</label>
+                <input type="tel" id="telefono" placeholder="Ej: +52 55 1234 5678">
+            </div>
+        </div>
+        <div class="space-y-3">
+            <label class="text-xs text-gray-500 tracking-wider obligatorio">Correo electrónico</label>
+            <input type="email" id="email" placeholder="Ej: contacto@iglesia.org">
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">Tipo de evento</label><select id="tipo_evento"><option value="culto">Culto o Servicio Regular</option><option value="congreso">Congreso / Campamento</option><option value="concierto">Concierto / Noche de Adoración</option><option value="otro">Otro (especificar)</option></select></div>
+            <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">Fecha(s) del evento</label><input type="text" id="fecha" placeholder="Ej: 15 de Octubre, 2026"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">Horario programado del evento</label><input type="text" id="horario" placeholder="Ej: 19:00 hrs"></div>
+            <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">Ciudad, estado y país</label><input type="text" id="ubicacion" placeholder="Ej: Guadalajara, Jal, México"></div>
+        </div>
+        <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">Dirección exacta del lugar del evento</label><textarea id="direccion" placeholder="Ej: Av. Vallarta 1234, Col. Americana" class="h-28 resize-none"></textarea></div>
+        
+        <div class="flex justify-end pt-4">
+            <button type="button" onclick="changeTab(1)" class="bg-white/5 hover:bg-white/10 px-8 py-3 rounded text-white uppercase text-xs tracking-widest transition">Siguiente</button>
+        </div>
+    </div>
+
+    <div class="tab-content hidden space-y-8 seccion-borde border-t border-gray-900 pt-8">
+        <h2 class="text-2xl text-white">2. Dinámica del Evento</h2>
+        <div class="space-y-3">
+            <label class="text-xs text-gray-500 tracking-wider">¿Naturaleza del evento para los asistentes?</label>
+            <select id="naturaleza_asistencia">
+                <option value="gratuito">Es un evento 100% gratuito</option>
+                <option value="costo">Es un evento con costo de entrada</option>
+            </select>
+        </div>
+        <div class="space-y-3">
+            <label class="text-xs text-gray-500 tracking-wider">¿Habrá otros conferencistas o bandas invitadas?</label>
+            <select id="otros_invitados" onchange="toggleDetalleInvitados(this.value)">
+                <option value="no">No, somos los únicos invitados</option>
+                <option value="si">Sí (Mencione quiénes más participan)</option>
+            </select>
+        </div>
+        <div id="detalle_invitados_container" class="space-y-3 hidden">
+            <label class="text-xs text-gray-500 tracking-wider">Mencione quiénes más participan</label>
+            <textarea id="detalle_invitados" placeholder="Ej: Banda local X, Ministerio Y..." class="h-20 resize-none"></textarea>
+        </div>
+        <div class="space-y-3">
+            <label class="text-xs text-gray-500 tracking-wider">Tiempo estimado de nuestra participación</label>
+            <select id="tiempo_participacion">
+                <option value="menos45">Menos de 45 minutos</option>
+                <option value="45a115">Entre 45 minutos y 1 hora 15 min</option>
+                <option value="mas130">Múltiples intervenciones o concierto completo</option>
+            </select>
+        </div>
+        <div class="space-y-3">
+            <label class="text-xs text-gray-500 tracking-wider">Expectativas del Ministerio</label>
+            <textarea id="expectativas" placeholder="Deseamos un tiempo de profunda adoración y..." class="h-36 resize-none"></textarea>
+        </div>
+        
+        <div class="flex justify-between pt-4">
+            <button type="button" onclick="changeTab(-1)" class="text-gray-500 hover:text-white uppercase text-xs tracking-widest transition">Anterior</button>
+            <button type="button" onclick="changeTab(1)" class="bg-white/5 hover:bg-white/10 px-8 py-3 rounded text-white uppercase text-xs tracking-widest transition">Siguiente</button>
+        </div>
+    </div>
+
+    <div class="tab-content hidden space-y-8 seccion-borde border-t border-gray-900 pt-8">
+        <h2 class="text-2xl text-white">3. Formato y Viáticos</h2>
+        <p class="text-xs text-gray-600 italic">Nota: Nuestro ingeniero de audio viaja de forma obligatoria.</p>
+        <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">Selecciona el formato de la agrupación</label><select id="formato"><option value="4voz_4musicos">4 voces + 4 músicos + Ingeniero</option><option value="2voz_4musicos">2 voces + 4 músicos + Ingeniero</option></select></div>
+        <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">¿Qué transporte puede cubrir la organización?</label><select id="transporte"><option value="combustible">Costo de combustible y peajes</option><option value="vuelos">Vuelos y transporte local</option><option value="coordinado">Requiere coordinarlo con la agrupación</option></select></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">Alimentación</label><select id="alimentacion"><option value="si">Sí, están cubiertos</option><option value="parte">Podemos cubrir una parte</option></select></div>
+            <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">Hospedaje adecuado (si aplica)</label><select id="hospedaje"><option value="si">Sí, se proveerá hospedaje</option><option value="noapply">No aplica (evento local)</option></select></div>
+        </div>
+        
+        <div class="flex justify-between pt-4">
+            <button type="button" onclick="changeTab(-1)" class="text-gray-500 hover:text-white uppercase text-xs tracking-widest transition">Anterior</button>
+            <button type="button" onclick="changeTab(1)" class="bg-white/5 hover:bg-white/10 px-8 py-3 rounded text-white uppercase text-xs tracking-widest transition">Siguiente</button>
+        </div>
+    </div>
+
+    <div class="tab-content hidden space-y-8 seccion-borde border-t border-gray-900 pt-8">
+        <h2 class="text-2xl text-white">4. Requerimientos y Presupuesto</h2>
+        <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">¿Cuentan con sistema de sonido (P.A.) profesional?</label><select id="sonido"><option value="si_pro">Sí, sistema completo y profesional</option><option value="limitado">Contamos con sistema, pero es limitado</option><option value="no">No, necesitamos apoyo técnico</option></select></div>
+        <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">¿Están abiertos a recibir nuestro Rider Técnico?</label><select id="apertura_rider"><option value="si">Sí, totalmente abiertos a ajustes</option><option value="negociar">Necesitamos conversar puntos específicos</option></select></div>
+        <div class="space-y-3">
+            <label class="text-xs text-gray-500 tracking-wider">Adjuntar Rider Técnico (PDF o Imagen)</label>
+            <input type="file" id="archivoRider" accept=".pdf, .jpg, .jpeg, .png" class="w-full bg-white/5 border border-gray-700 p-3 rounded text-white text-sm">
+        </div>
+        <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">Presupuesto disponible</label><select id="presupuesto"><option value="opcion1">Menor a [Monto X]</option><option value="opcion2">Monto base de [Monto X]</option><option value="opcion3">Mayor a [Monto Y]</option><option value="siembra">Ofrenda voluntaria adicional / Sembrar</option></select></div>
+        
+        <div class="flex justify-between pt-10">
+            <button type="button" onclick="changeTab(-1)" class="text-gray-500 hover:text-white uppercase text-xs tracking-widest transition">Anterior</button>
+            <button type="submit" class="btn-luxury px-12 py-5 rounded uppercase font-bold text-lg tracking-wider">Enviar Solicitud</button>
+        </div>
+    </div>
+</form>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "TU_API_KEY_AQUI", 
+        authDomain: "cddmusica-d8f92.firebaseapp.com",
+        projectId: "cddmusica-d8f92",
+        storageBucket: "cddmusica-d8f92.firebasestorage.app",
+        messagingSenderId: "490870638033",
+        appId: "1:490870638033:web:af7075a3da6be99ca1ccf0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.getElementById('formInvitacion').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const form = document.getElementById('formInvitacion');
+        // IDs que requieren validación obligatoria
+        const requiredIDs = ['iglesia', 'contacto', 'telefono', 'email'];
+        let firstErrorID = null;
+
+        for (let id of requiredIDs) {
+            const input = document.getElementById(id);
+            if (!input.value.trim()) {
+                input.style.border = "1px solid red";
+                if (!firstErrorID) firstErrorID = id;
+            } else {
+                input.style.border = "";
+            }
+        }
+
+        if (firstErrorID) {
+    // Usamos Toastify para una notificación elegante
+    Toastify({
+        text: "Por favor, completa todos los campos obligatorios antes de continuar.",
+        duration: 4000,
+        gravity: "top",
+        position: "right",
+        style: {
+            background: "#D4AF37", // El color oro premium
+            color: "#000",
+            fontWeight: "bold",
+            fontFamily: "'Geist', sans-serif"
+        }
+    }).showToast();
+
+    // Lógica para llevar al usuario al error
+    showTab(0); 
+    document.getElementById(firstErrorID).focus();
+    return;
+}
+
+        const data = {};
+        form.querySelectorAll('input, select, textarea').forEach(input => {
+            if (input.id) data[input.id] = input.value;
+        });
+
+        data.fechaRegistro = new Date().toISOString();
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerText;
+        submitBtn.innerText = "Enviando...";
+        submitBtn.disabled = true;
+
+       try {
+    // 1. Deshabilitar botón para evitar envíos dobles
+    submitBtn.innerText = "PROCESANDO...";
+    submitBtn.disabled = true;
+
+    // 2. Guardar en Firestore
+    const docRef = await addDoc(collection(db, "invitaciones"), data);
+    console.log("Documento guardado con ID: ", docRef.id);
+
+    // 3. Feedback visual de éxito
+    Toastify({
+    text: "¡Muchas gracias! Su solicitud ha sido enviada con éxito.",
+    duration: 5000,
+    gravity: "top", // `top` o `bottom`
+    position: "right", // `left`, `center` o `right`
+    stopOnFocus: true, // Evita que se cierre si pasas el mouse por encima
+    style: {
+        background: "#D4AF37", // El color oro de tu marca
+        color: "#000",
+        fontWeight: "bold",
+        fontFamily: "'Geist', sans-serif"
+    },
+    onClick: function(){} // Callback opcional al hacer click
+}).showToast();
+
+    // 4. Reset total y retorno al estado inicial
+    form.reset();
+    
+    // Limpiar campos visuales (bordes rojos si quedaron)
+    form.querySelectorAll('input, select, textarea').forEach(el => el.style.border = "");
+
+    // 5. Retornar al inicio y primera pestaña
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showTab(0);
+
+} catch (error) {
+    console.error("Detalle del error:", error); // Esto sigue siendo vital para ti
+    
+    Toastify({
+        text: "Hubo un error al conectar. Por favor, intenta de nuevo.",
+        duration: 6000,
+        gravity: "top",
+        position: "right",
+        stopOnFocus: true,
+        style: {
+            background: "linear-gradient(to right, #8B0000, #4A0404)", // Rojo degradado elegante
+            color: "#FFFFFF",
+            fontWeight: "bold",
+            fontFamily: "'Geist', sans-serif",
+            border: "1px solid #D4AF37" // Un toque de tu color oro para mantener el estilo
+        }
+    }).showToast();
+
+} finally {
+    // Reactivar botón
+    submitBtn.innerText = "Enviar Solicitud";
+    submitBtn.disabled = false;
+}
+    });
+</script>
+
+<script>
+    let currentTab = 0;
+    const totalTabs = 4;
+
+    function showTab(index) {
+        currentTab = index;
+        document.querySelectorAll('.tab-content').forEach((tab, i) => {
+            tab.classList.toggle('hidden', i !== index);
+        });
+        document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+            btn.classList.toggle('text-gold', i === index);
+            btn.classList.toggle('border-b-2', i === index);
+            btn.classList.toggle('border-gold', i === index);
+            btn.classList.toggle('text-gray-500', i !== index);
+        });
+    }
+
+    function changeTab(direction) {
+        let newTab = currentTab + direction;
+        if (newTab >= 0 && newTab < totalTabs) {
+            showTab(newTab);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+</script>
+
+<div id="video-background-container" class="fixed inset-0 w-full h-full overflow-hidden" style="z-index: -1;">
+    <div class="absolute inset-0 bg-black/70 z-[1]"></div>
+    <div id="player" class="absolute top-0 left-0 w-full h-full scale-[1.5]"></div>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+    let player;
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+            videoId: 'TJ1KB4eAUXM',
+            playerVars: {
+                'autoplay': 1,
+                'mute': 1,
+                'loop': 1,
+                'playlist': 'TJ1KB4eAUXM',
+                'controls': 0,
+                'showinfo': 0,
+                'modestbranding': 1,
+                'start': 150,
+                'end': 180,
+                'playsinline': 1
+            },
+            events: {
+                'onReady': (event) => event.target.playVideo(),
+                'onStateChange': (event) => {
+                    if (event.data === YT.PlayerState.ENDED) {
+                        player.seekTo(150);
+                        player.playVideo();
+                    }
+                }
+            }
+        });
+    }
+
+    function toggleDetalleInvitados(value) {
+        const container = document.getElementById('detalle_invitados_container');
+        if (value === 'si') {
+            container.classList.remove('hidden');
+        } else {
+            container.classList.add('hidden');
+            document.getElementById('detalle_invitados').value = '';
+        }
+    }
+</script>
+
+</body>
+ </html>
