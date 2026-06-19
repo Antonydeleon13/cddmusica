@@ -16,11 +16,21 @@
 </head>
 <body class="p-4 md:p-12">
 
-  <div class="max-w-7xl mx-auto mb-12">
-    <div class="flex justify-between items-center mb-8">
-        <h1 class="text-xl uppercase tracking-widest text-white">Solicitudes Recibidas</h1>
-        <div class="text-[10px] text-gold uppercase tracking-widest animate-pulse">● Conectado a tiempo real</div>
+ <div class="max-w-7xl mx-auto mb-12">
+    <div class="flex flex-col md:grid md:grid-cols-3 items-center mb-12 gap-6">
+        
+        <div class="hidden md:block"></div>
+
+        <div class="flex flex-col items-center gap-2">
+            <img src="logo.png" alt="Logo" class="h-10 md:h-12 w-auto filter brightness-0 invert">
+            <h1 class="text-lg md:text-xl uppercase tracking-widest text-white text-center">Solicitudes Recibidas</h1>
+        </div>
+
+        <div class="text-[10px] text-gold uppercase tracking-widest animate-pulse text-center md:text-right">
+            ● Conectado a tiempo real
+        </div>
     </div>
+</div>
 
     <div class="flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex gap-2 bg-black p-1 rounded border border-gray-800">
@@ -194,4 +204,7 @@
     document.getElementById('buscador')?.addEventListener('input', window.renderizar);
 </script>
 </body>
+
+
+
 </html>
