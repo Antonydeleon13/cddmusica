@@ -113,20 +113,17 @@
 
 <div class="max-w-4xl mx-auto">
     <div class="text-center mb-20">
-    <div class="inline-flex items-center justify-center mb-10">
-        <img src="logo.png" alt="Logo Ministerio" class="h-16 opacity-90 filter brightness-0 invert transition-all hover:opacity-100" style="max-height: 64px;">
-    </div>
+    <div class="inline-flex items-center justify-center mb-10 border-b-0" style="border-bottom: none !important;">
+    <img src="logo.png" alt="Logo Ministerio" class="h-16 opacity-90 filter brightness-0 invert transition-all hover:opacity-100" style="max-height: 64px;">
+</div>
     
-    <div class="relative overflow-hidden rounded-xl mb-12 shadow-2xl border border-gray-800">
-        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 z-10"></div>
-        
-        <img src="team.JPG" alt="Portada Ministerio" class="w-full h-96 object-cover object-center transform hover:scale-105 transition-transform duration-700">
-        
-        <div class="absolute bottom-6 left-6 z-20 text-left">
-            <span class="text-[10px] uppercase tracking-[0.3em] text-gold font-bold bg-black/50 px-3 py-1 rounded border border-gold/30">
-                CDDMúsica | En Tour 2026
-            </span>
-        </div>
+  <div class="relative overflow-hidden rounded-xl mb-12 shadow-2xl">
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 z-10"></div>
+    
+    <div class="absolute bottom-6 left-6 z-20 text-left">
+        <span class="text-[10px] uppercase tracking-[0.3em] text-gold font-bold bg-black/50 px-3 py-1 rounded border border-gold/30">
+            CDDMúsica | En Tour 2026
+        </span>
     </div>
 </div>
 
@@ -137,26 +134,26 @@
             <span class="block mt-4 text-xs italic text-gray-600 font-normal">Nota: Aunque nuestro motor principal es servir y no manejamos una tarifa comercial fija, requerimos la cobertura de viáticos mínimos y condiciones técnicas básicas.</span>
         </p>
 
-    <div class="flex flex-wrap justify-center gap-4 mb-10 border-b border-gray-900 pb-6">
+    <div class="flex flex-row justify-between items-center mb-10 border-b border-gray-900 pb-2 overflow-x-auto">
     
-    <button type="button" onclick="showTab(0)" class="tab-btn flex flex-col items-center gap-2 px-6 py-2 uppercase tracking-widest text-gold border-b-2 border-gold transition-all">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-        <span class="text-[10px]">Info</span>
+    <button type="button" onclick="showTab(0)" class="tab-btn flex flex-col items-center gap-1 px-2 py-2 uppercase tracking-widest text-gold border-b-2 border-gold transition-all flex-shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        <span class="text-[9px] whitespace-nowrap">Info</span>
     </button>
 
-    <button type="button" onclick="showTab(1)" class="tab-btn flex flex-col items-center gap-2 px-6 py-2 uppercase tracking-widest text-gray-500 hover:text-white transition-all">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-        <span class="text-[10px]">Dinámica</span>
+    <button type="button" onclick="showTab(1)" class="tab-btn flex flex-col items-center gap-1 px-2 py-2 uppercase tracking-widest text-gray-500 hover:text-white transition-all flex-shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <span class="text-[9px] whitespace-nowrap">Dinámica</span>
     </button>
 
-    <button type="button" onclick="showTab(2)" class="tab-btn flex flex-col items-center gap-2 px-6 py-2 uppercase tracking-widest text-gray-500 hover:text-white transition-all">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 110 4H5.5a2.5 2.5 0 00-2.5 2.5V16"></path></svg>
-        <span class="text-[10px]">Logística</span>
+    <button type="button" onclick="showTab(2)" class="tab-btn flex flex-col items-center gap-1 px-2 py-2 uppercase tracking-widest text-gray-500 hover:text-white transition-all flex-shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 110 4H5.5a2.5 2.5 0 00-2.5 2.5V16"></path></svg>
+        <span class="text-[9px] whitespace-nowrap">Logística</span>
     </button>
 
-    <button type="button" onclick="showTab(3)" class="tab-btn flex flex-col items-center gap-2 px-6 py-2 uppercase tracking-widest text-gray-500 hover:text-white transition-all">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
-        <span class="text-[10px]">Técnico</span>
+    <button type="button" onclick="showTab(3)" class="tab-btn flex flex-col items-center gap-1 px-2 py-2 uppercase tracking-widest text-gray-500 hover:text-white transition-all flex-shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+        <span class="text-[9px] whitespace-nowrap">Técnico</span>
     </button>
 </div>
 
@@ -255,13 +252,28 @@
     <div class="tab-content hidden space-y-8 seccion-borde border-t border-gray-900 pt-8">
         <h2 class="text-2xl text-white">4. Requerimientos y Presupuesto</h2>
         <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">¿Cuentan con sistema de sonido (P.A.) profesional?</label><select id="sonido"><option value="si_pro">Sí, sistema completo y profesional</option><option value="limitado">Contamos con sistema, pero es limitado</option><option value="no">No, necesitamos apoyo técnico</option></select></div>
-        <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">¿Están abiertos a recibir nuestro Rider Técnico?</label><select id="apertura_rider"><option value="si">Sí, totalmente abiertos a ajustes</option><option value="negociar">Necesitamos conversar puntos específicos</option></select></div>
+       <div class="space-y-3">
+    <label class="text-xs text-gray-500 tracking-wider">¿Están abiertos a recibir nuestro Rider Técnico?</label>
+    <select id="apertura_rider" onchange="mostrarDescarga(this.value)">
+        <option value="">Selecciona una opción...</option>
+        <option value="si">Sí, totalmente abiertos a ajustes</option>
+        <option value="negociar">Necesitamos conversar puntos específicos</option>
+    </select>
+</div>
+
+<div id="descarga_rider" class="hidden mt-4 p-4 bg-white/5 border border-gold/30 rounded flex items-center justify-between">
+    <span class="text-xs text-white">Descarga nuestro Rider Técnico aquí:</span>
+    <a href="stageplot + inputlist.pdf" target="_blank" download class="text-gold hover:underline text-xs font-bold uppercase tracking-widest">
+        Descargar PDF
+    </a>
+</div>
         <div class="space-y-3">
             <label class="text-xs text-gray-500 tracking-wider">Adjuntar Rider Técnico (PDF o Imagen)</label>
             <input type="file" id="archivoRider" accept=".pdf, .jpg, .jpeg, .png" class="w-full bg-white/5 border border-gray-700 p-3 rounded text-white text-sm">
         </div>
-        <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">Presupuesto disponible</label><select id="presupuesto"><option value="opcion1">Menor a [Monto X]</option><option value="opcion2">Monto base de [Monto X]</option><option value="opcion3">Mayor a [Monto Y]</option><option value="siembra">Ofrenda voluntaria adicional / Sembrar</option></select></div>
+        <div class="space-y-3"><label class="text-xs text-gray-500 tracking-wider">Presupuesto disponible</label><select id="presupuesto"><option value="opcion1">Menor a Q5,000</option><option value="opcion2">Monto base de Q6,500</option><option value="opcion3">Mayor a Q9,000</option><option value="siembra">Ofrenda voluntaria adicional / Sembrar</option></select></div>
         
+       
         <div class="flex justify-between pt-10">
             <button type="button" onclick="changeTab(-1)" class="text-gray-500 hover:text-white uppercase text-xs tracking-widest transition">Anterior</button>
             <button type="submit" class="btn-luxury px-12 py-5 rounded uppercase font-bold text-lg tracking-wider">Enviar Solicitud</button>
@@ -470,6 +482,58 @@
         }
     }
 </script>
+
+
+<script>
+    const ubicacionInput = document.getElementById('ubicacion');
+    const presupuestoSelect = document.getElementById('presupuesto');
+
+    const opcionesGT = `
+        <option value="opcion1">Menor a Q5,400</option>
+        <option value="opcion2">Monto base de Q5,400</option>
+        <option value="opcion3">Mayor a Q9,000</option>
+        <option value="siembra">Ofrenda voluntaria adicional / Sembrar</option>
+    `;
+
+    const opcionesIntl = `
+        <option value="opcion1">Menor a $650</option>
+        <option value="opcion2">Monto base de $850</option>
+        <option value="opcion3">Mayor a $1,200</option>
+        <option value="siembra">Ofrenda voluntaria adicional / Sembrar</option>
+    `;
+
+    function actualizarPresupuesto() {
+        const val = ubicacionInput.value.toLowerCase();
+        // Si el usuario escribe "Guatemala", carga opciones en Quetzales
+        if (val.includes('guatemala')) {
+            presupuestoSelect.innerHTML = opcionesGT;
+        } else {
+            // Si es cualquier otro país o está vacío, carga opciones en Dólares
+            presupuestoSelect.innerHTML = opcionesIntl;
+        }
+    }
+
+    // Detecta cuando el usuario escribe en el campo de ubicación
+    ubicacionInput.addEventListener('input', actualizarPresupuesto);
+    
+    // Ejecuta la función al cargar la página
+    actualizarPresupuesto();
+
+
+
+    function mostrarDescarga(value) {
+        const divDescarga = document.getElementById('descarga_rider');
+        // Solo mostramos si el valor es 'si'
+        if (value === 'si') {
+            divDescarga.classList.remove('hidden');
+        } else {
+            divDescarga.classList.add('hidden');
+        }
+    }
+
+
+</script>
+
 
 </body>
  </html>
