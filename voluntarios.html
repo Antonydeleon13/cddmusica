@@ -561,5 +561,17 @@ window.cargarEnsayos = async function() {
 
 
 </script>
+
+<script>
+    window.addEventListener('load', () => {
+        // Un pequeño retraso para asegurar que Firebase se haya inicializado
+        setTimeout(() => {
+            if (typeof window.cargarEnsayos === 'function') {
+                window.cargarEnsayos();
+            }
+        }, 500); 
+    });
+</script>
+
 </body>
 </html>
