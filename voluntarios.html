@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Voluntario | Deepartment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+   <style>
+    /* Estilos base */
+    body { background-color: #050505; color: #e5e5e5; font-family: sans-serif; }
+    
+    /* Contenedor principal con efecto cristal */
+    .bg-premium { 
+        background: rgba(18, 18, 18, 0.7); 
+        backdrop-filter: blur(12px); 
+        border: 1px solid rgba(255, 255, 255, 0.05); 
+    }
+    
+    .text-gold { color: #ffd95a; }
+
+    /* Clases para el efecto 3D del perfil */
+    .perspective { perspective: 1000px; }
+    .transform-style-3d { transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+    .is-flipped { transform: rotateY(180deg); }
+
+    /* REPRODUCTOR CORREGIDO: Sin blur para evitar el halo negro */
+    .player-clean {
+        background: rgba(255, 255, 255, 0.04); /* Fondo sutil sin desenfoque */
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 1rem;
+        box-shadow: none !important; /* Asegura que no haya sombras */
+    }
+
+
+    .acordeon-contenido {
+        background: transparent !important; /* Elimina el fondo gris oscuro */
+        box-shadow: none !important;        /* Elimina cualquier sombra heredada */
+        border: none !important;            /* Elimina bordes del contenedor padre */
+    }
+
+
+
+</style>
+
+
+</head>
+<body class="min-h-screen">
+
+    <div id="login-view" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black">
+        <div class="relative w-full max-w-[280px] flex flex-col items-center">
+            <img src="logodeep.png" class="h-32 w-auto mb-10 brightness-[10] drop-shadow-[0_0_20px_rgba(255,255,255,0.8)]">
+            <input type="email" id="login-email" placeholder="Correo electrónico" 
+                   class="w-full bg-transparent border-b border-gray-600 text-white text-center pb-2 mb-6 outline-none focus:border-white text-sm">
+            <button type="button" onclick="window.loginVoluntario()" class="text-[10px] uppercase tracking-[0.4em] text-gray-400 hover:text-white transition-all">
+                Ingresar al Perfil
+            </button>
+        </div>
+    </div>
+
+   <div id="panel-view" class="hidden p-6 mx-auto w-full max-w-md md:max-w-4xl">
+    
+    <div class="flex justify-between items-center mb-8">
+        <img src="logodeep.png" class="h-8 w-auto brightness-0 invert">
+        <button onclick="cerrarSesion()" class="text-[9px] uppercase tracking-[0.2em] text-gray-600 hover:text-white transition">Salir</button>
+    </div>
+
+    <div class="flex justify-center gap-6 mb-8" id="tabs-nav">
+        <button onclick="mostrarTab('perfil')" class="text-[10px] uppercase tracking-widest text-gold border-b border-gold pb-1">Perfil</button>
+        <button onclick="mostrarTab('ensayos')" class="text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition">Ensayos</button>
+        <button onclick="mostrarTab('setlist')" class="text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition">Setlist</button>
+    </div>
+
+
+        <div class="group perspective w-full h-auto">
+    <div id="card-inner" class="relative w-full transition-transform duration-700 transform-style-3d">
+        
+        <div id="card-front" class="w-full bg-premium p-6 rounded-2xl border border-gray-800 backface-hidden">
+            <div id="team-badge" 
+     class="text-center text-gold font-black uppercase tracking-[0.2em] 
+            text-2xl md:text-5xl my-10 cursor-pointer hover:opacity-80 transition-opacity" 
+     onclick="flipCard()">
+     Cargando...
+</div>
+            
+            <form id="form-perfil" class="space-y-4">
+                <input type="text" id="edit-nombre" placeholder="Nombre" class="w-full bg-[#161616] p-3 rounded-lg border border-gray-800 text-sm">
+                <input type="text" id="edit-nickname" placeholder="Nickname" class="w-full bg-[#161616] p-3 rounded-lg border border-gray-800 text-sm">
+                <input type="tel" id="edit-telefono" placeholder="Teléfono" class="w-full bg-[#161616] p-3 rounded-lg border border-gray-800 text-sm">
+                <input type="email" id="edit-email" readonly class="w-full bg-[#161616] p-3 rounded-lg border border-gray-800 text-sm text-gray-500">
+                <input type="text" id="edit-rol" readonly class="w-full bg-[#161616] p-3 rounded-lg border border-gray-800 text-sm text-gray-500">
+                <input type="text" id="edit-direccion" placeholder="Dirección" class="w-full bg-[#161616] p-3 rounded-lg border border-gray-800 text-sm">
+                <button type="submit" class="w-full mt-4 bg-[#D4AF37] text-black py-3 rounded-lg text-xs font-bold uppercase tracking-widest">Guardar Cambios</button>
+            </form>
+            <p class="text-[9px] text-gray-600 mt-6 text-center uppercase tracking-[0.2em] cursor-pointer" onclick="flipCard()">Ver Integrantes del Equipo →</p>
+        </div>
+
+        <div id="card-back" class="absolute top-0 w-full bg-premium p-6 rounded-2xl border border-gray-800 backface-hidden rotate-y-180 min-h-[400px]">
+            <h3 class="text-gold font-bold mb-6 uppercase text-[10px] tracking-widest">Equipo: <span id="team-name-title"></span></h3>
+            <div id="team-list" class="space-y-3"></div>
+            <button onclick="flipCard()" class="w-full mt-8 py-3 border border-gray-800 text-[9px] text-gray-500 uppercase tracking-widest hover:text-white transition">← Volver al Perfil</button>
+        </div>
+
+        </div>
+
+        <div id="tab-ensayos" class="hidden bg-premium p-6 rounded-2xl border border-gray-800 text-center">
+    <h3 class="text-gold font-bold mb-4 uppercase text-xs">Próximos Ensayos</h3>
+    <div id="lista-ensayos" class="space-y-3">
+        <p class="text-[10px] text-gray-500">No hay ensayos programados.</p>
+    </div>
+</div>
+
+<div id="tab-setlist" class="hidden bg-premium p-6 rounded-2xl border border-gray-800">
+    <h3 class="text-gold font-bold mb-4 uppercase text-xs text-center">Setlist Actual</h3>
+    <div id="lista-canciones" class="space-y-2 text-[11px]">
+</div>
+</div>
+    </div> <!-- card-inner -->
+</div> 
+                      
+
+   <script type="module">
+   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, getDoc, doc, updateDoc, terminate, clearIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyBMp-j9Mk6VZ68SO8dUzgZgfXodIM9Ibys", 
+        authDomain: "cddmusica-d8f92.firebaseapp.com", 
+        projectId: "cddmusica-d8f92", 
+        storageBucket: "cddmusica-d8f92.firebasestorage.app", 
+        messagingSenderId: "490870638033", 
+        appId: "1:490870638033:web:af7075a3da6be99ca1ccf" 
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+
+     window.db = db;
+    window.collection = collection;
+    window.query = query;
+    window.where = where;
+    window.getDocs = getDocs;
+    window.getDoc = getDoc;
+    window.doc = doc;
+    window.updateDoc = updateDoc;
+
+    console.log("Firebase inicializado y funciones globales configuradas.");
+
+    
+    let currentUser = null;
+
+    // 1. Agrega esta función fuera de loginVoluntario (puedes ponerla antes)
+window.obtenerIconoPorRol = (rolDetalle) => {
+        const rol = (rolDetalle || '').toLowerCase();
+        if (rol.includes('piano')) return 'KEYS';
+        if (rol.includes('guitarra')) return 'GTR';
+        if (rol.includes('bateria')) return 'DRUMS';
+        if (rol.includes('bajo')) return 'BAJO';
+        if (rol.includes('voz') || rol.includes('soprano') || rol.includes('tenor') || rol.includes('baritono')) return 'VOZ';
+        if (rol.includes('percusion')) return 'PERCU';
+        if (rol.includes('saxofon')) return 'SAXO';
+        if (rol.includes('trompeta')) return 'TROMPETA';
+        if (rol.includes('violin')) return 'VIOLIN';
+        return 'USR';
+    };
+
+// 2. Modifica tu función loginVoluntario así:
+window.loginVoluntario = async () => {
+    const emailInput = document.getElementById('login-email').value.toLowerCase();
+    if (!emailInput) return alert("Ingresa un correo");
+
+    try {
+        const q = query(collection(db, "voluntarios"), where("email", "==", emailInput));
+        const snap = await getDocs(q);
+
+        if (!snap.empty) {
+            currentUser = { id: snap.docs[0].id, ...snap.docs[0].data() };
+            console.log("MI EQUIPO:", currentUser.equipo);
+            
+            // --- PERSISTENCIA: Guardamos el correo para recordarlo al recargar ---
+            localStorage.setItem('deep_user_email', emailInput);
+            
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('panel-view').classList.remove('hidden');
+            
+            // Llenado de campos
+            document.getElementById('edit-nombre').value = currentUser.nombre || '';
+            document.getElementById('edit-nickname').value = currentUser.nickname || '';
+            document.getElementById('edit-telefono').value = currentUser.telefono || '';
+            document.getElementById('edit-email').value = currentUser.email || '';
+            document.getElementById('edit-direccion').value = currentUser.direccion || '';
+            document.getElementById('edit-rol').value = currentUser.detalle || currentUser.rol || '';
+
+            // Icono del equipo
+            const icono = window.obtenerIconoPorRol(currentUser.detalle || currentUser.rol);
+            document.getElementById('team-badge').innerHTML = `${icono} ${currentUser.equipo || 'Sin equipo asignado'}`;
+            
+            // --- AUTO-CARGA: Traemos el setlist al entrar ---
+            if (typeof cargarSetlist === 'function') {
+                cargarSetlist();
+            }
+            
+        } else {
+            alert("Correo no encontrado.");
+        }
+    } catch (err) {
+        console.error("Error al buscar:", err);
+        alert("Error de conexión. Asegúrate de haber publicado tus reglas en Firebase.");
+    }
+};
+
+    document.getElementById('form-perfil').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentUser) return;
+
+        try {
+            await updateDoc(doc(db, "voluntarios", currentUser.id), {
+                nombre: document.getElementById('edit-nombre').value,
+                nickname: document.getElementById('edit-nickname').value,
+                telefono: document.getElementById('edit-telefono').value,
+                direccion: document.getElementById('edit-direccion').value
+            });
+            alert("Cambios guardados exitosamente.");
+        } catch (err) {
+            console.error(err);
+            alert("Error al guardar.");
+        }
+    });
+
+// Función para girar la tarjeta
+window.flipCard = async () => {
+    const card = document.getElementById('card-inner');
+    card.classList.toggle('is-flipped');
+
+    // Si estamos girando para ver el team, cargamos la lista
+    if (card.classList.contains('is-flipped')) {
+        cargarIntegrantesTeam(currentUser.equipo);
+    }
+};
+
+async function cargarIntegrantesTeam(equipoNombre) {
+    const listContainer = document.getElementById('team-list');
+    const title = document.getElementById('team-name-title');
+    
+    if (!equipoNombre) {
+        listContainer.innerHTML = '<p class="text-gray-500 text-xs text-center">No tienes un equipo asignado.</p>';
+        return;
+    }
+
+    title.innerText = equipoNombre;
+    listContainer.innerHTML = '<p class="text-gray-500 text-xs text-center">Buscando integrantes...</p>';
+
+    try {
+        // Aseguramos que buscamos el equipo exacto
+        const q = query(collection(db, "voluntarios"), where("equipo", "==", equipoNombre));
+        const snap = await getDocs(q);
+
+        listContainer.innerHTML = ''; // Limpiar el "Buscando..."
+
+        if (snap.empty) {
+            listContainer.innerHTML = '<p class="text-gray-500 text-xs text-center">No hay otros miembros en este equipo.</p>';
+        } else {
+            snap.forEach((doc) => {
+                const v = doc.data();
+                const icon = window.obtenerIconoPorRol(v.detalle || v.rol);
+                
+                listContainer.innerHTML += `
+                    <div class="flex items-center gap-4 bg-[#121212] p-3 rounded-lg border border-gray-800/50">
+                        <span class="text-[10px] font-bold bg-gray-900 w-10 h-10 flex items-center justify-center rounded-full border border-gray-800 text-gold">${icon}</span>
+                        <div>
+                            <p class="text-xs font-bold text-white">${v.nickname || v.nombre}</p>
+                            <p class="text-[9px] text-gray-500 uppercase">${v.detalle || v.rol || ''}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    } catch (err) {
+        console.error("Error al cargar equipo:", err);
+        listContainer.innerHTML = '<p class="text-red-500 text-xs text-center">Error al cargar datos.</p>';
+    }
+}
+
+window.mostrarTab = (tabName) => {
+    // Ocultar todo
+    document.getElementById('card-inner').classList.add('hidden');
+document.getElementById('tab-ensayos').classList.add('hidden');
+document.getElementById('tab-setlist').classList.add('hidden');
+
+    // Resetear colores de botones (simplificado)
+    document.querySelectorAll('#tabs-nav button').forEach(btn => btn.className = "text-[9px] uppercase tracking-widest text-gray-500");
+
+    // Mostrar el seleccionado
+    if (tabName === 'perfil') {
+        document.getElementById('card-inner').classList.remove('hidden');
+    } else if (tabName === 'ensayos') {
+        document.getElementById('tab-ensayos').classList.remove('hidden');
+        cargarEnsayos();
+    } else if (tabName === 'setlist') {
+        document.getElementById('tab-setlist').classList.remove('hidden');
+        cargarSetlist();
+    }
+};
+
+// Funciones para cargar datos desde Firebase
+async function cargarEnsayos() {
+    // Aquí harías un getDocs a una colección llamada 'ensayos'
+    console.log("Cargando fechas de ensayos...");
+}
+
+async function cargarSetlist() {
+    const lista = document.getElementById('lista-canciones');
+    if (!lista) return;
+
+    try {
+        const q = query(collection(db, "setlists"), where("equipo", "==", currentUser.equipo));
+        const snap = await getDocs(q);
+
+        let html = '';
+        for (const setlistDoc of snap.docs) {
+            const data = setlistDoc.data();
+            const cancionesDetalladas = await Promise.all((data.canciones || []).map(async (c) => {
+                const songSnap = await getDoc(doc(db, "songs", c.id));
+                return songSnap.exists() ? { ...c, ...songSnap.data() } : c;
+            }));
+
+            html += `
+            <div class="bg-[#121212] border border-gray-800 rounded-lg p-4 mb-6">
+                <h4 class="text-gold font-bold mb-4 uppercase text-[11px] tracking-widest">${data.nombre}</h4>
+                ${cancionesDetalladas.map((c, i) => {
+                    const songId = `song-${setlistDoc.id}-${i}`;
+                    return `
+                        <div class="border-b border-gray-800 last:border-0">
+                            <button onclick="toggleAcordeon('${songId}')" 
+                                    class="w-full py-4 flex justify-between items-center text-white font-bold hover:text-gold transition">
+                                <div class="flex flex-col items-start">
+                                    <span class="text-[13px]">${i + 1}. ${c.titulo}</span>
+                                    <div class="flex gap-3 mt-1">
+                                        ${c.nota ? `<span class="text-[9px] text-gray-500 uppercase">Nota: ${c.nota}</span>` : ''}
+                                        ${c.bpm ? `<span class="text-[9px] text-gray-500 uppercase">${c.bpm} BPM</span>` : ''}
+                                    </div>
+                                </div>
+                                <span class="text-[10px] opacity-50">▼</span>
+                            </button>
+
+                            <div id="${songId}" class="acordeon-contenido hidden pb-4 px-2 bg-transparent rounded">
+                               ${c.audioUrl ? `
+                                <div class="mt-2 mb-4"> 
+                                    <input type="range" id="progress-${songId}" value="0" max="100" 
+                                           class="w-full h-1 bg-gray-800 rounded-full appearance-none cursor-pointer accent-gold mb-5">
+                                    
+                                    <div class="flex items-center justify-between px-2">
+                                        <button onclick="controlAudio('mute', '${songId}')" 
+                                                class="w-10 h-10 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                                            <img id="icon-volumen-${songId}" src="sound.png" class="w-5 h-5 invert brightness-200">
+                                        </button>
+
+                                        <button onclick="controlAudio('play', '${songId}')" 
+                                                class="w-12 h-12 flex items-center justify-center bg-white rounded-full hover:scale-105 transition-transform shadow-none">
+                                            <span id="icon-play-${songId}" class="text-lg text-black" style="margin-left: 2px;">▶</span>
+                                        </button>
+
+                                        <div id="time-display-${songId}" class="w-10 text-right text-[10px] font-mono text-white/30">0:00</div>
+                                    </div>
+                                    <audio id="audio-${songId}" src="${c.audioUrl}"></audio>
+                                </div>
+                                ` : ''}
+                                
+                                ${c.pdfUrl ? `
+                                    <button onclick="window.open('${c.pdfUrl}', '_blank')" 
+                                            class="mt-1 w-full py-2 border border-yellow-500/20 text-yellow-500 text-[10px] font-bold rounded uppercase hover:bg-yellow-500 hover:text-black transition">
+                                        Ver Partitura (PDF)
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>`;
+        }
+        lista.innerHTML = html;
+    } catch (err) {
+        console.error("Error cargando setlist:", err);
+    }
+}
+
+
+
+window.controlAudio = (accion, id) => {
+    const audio = document.getElementById(`audio-${id}`);
+    const progress = document.getElementById(`progress-${id}`);
+    const timeDisplay = document.getElementById(`time-display-${id}`);
+    const playIcon = document.getElementById(`icon-play-${id}`);
+    const volIcon = document.getElementById(`icon-volumen-${id}`);
+
+    if (accion === 'play') {
+        if (audio.paused) {
+            audio.play();
+            // Icono plano de PAUSA usando texto
+            playIcon.innerText = "❚❚"; 
+            playIcon.style.fontSize = "14px";
+        } else {
+            audio.pause();
+            // Icono plano de PLAY usando texto
+            playIcon.innerText = "▶";
+            playIcon.style.fontSize = "16px";
+        }
+    } 
+    
+    else if (accion === 'mute') {
+        audio.muted = !audio.muted;
+        // Cambiamos la fuente de la imagen (usando las imágenes sound.png / silence.png)
+        volIcon.src = audio.muted ? "silence.png" : "sound.png";
+    }
+
+    // Actualización de progreso y tiempo
+    audio.ontimeupdate = () => {
+        const valor = (audio.currentTime / audio.duration) * 100;
+        progress.value = valor || 0;
+        
+        // Formatear tiempo (minutos:segundos)
+        const mins = Math.floor(audio.currentTime / 60);
+        const secs = Math.floor(audio.currentTime % 60);
+        timeDisplay.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    };
+
+    // Saltar a un punto específico al mover la barra
+    progress.oninput = () => {
+        audio.currentTime = (progress.value / 100) * audio.duration;
+    };
+};
+
+
+
+
+window.toggleAcordeon = function(idSeleccionado) {
+        // 1. Buscamos todos los elementos que sean contenido de acordeón
+        const todosLosContenidos = document.querySelectorAll('.acordeon-contenido');
+        const elementoAActivar = document.getElementById(idSeleccionado);
+
+        // 2. Si el elemento ya está visible, solo lo cerramos
+        if (!elementoAActivar.classList.contains('hidden')) {
+            elementoAActivar.classList.add('hidden');
+            return;
+        }
+
+        // 3. Si no, cerramos TODOS los demás primero
+        todosLosContenidos.forEach(el => {
+            el.classList.add('hidden');
+        });
+
+        // 4. Y finalmente abrimos el que queremos
+        elementoAActivar.classList.remove('hidden');
+    };
+
+
+    // Se ejecuta apenas carga la página
+    document.addEventListener('DOMContentLoaded', () => {
+    const emailGuardado = localStorage.getItem('deep_user_email');
+    if (emailGuardado) {
+        // 1. Autologin
+        document.getElementById('login-email').value = emailGuardado;
+        
+        // 2. Ejecutamos el login
+        window.loginVoluntario();
+        
+        // 3. DISPARAMOS LA CARGA DE ENSAYOS AQUÍ
+        // Agregamos un pequeño delay (setTimeout) por si la base de datos 
+        // tarda unos milisegundos en inicializar al hacer login
+        setTimeout(() => {
+            if (typeof window.cargarEnsayos === 'function') {
+                window.cargarEnsayos();
+                console.log("Cargando ensayos tras login automático...");
+            }
+        }, 500);
+    }
+});
+
+    // Opcional: Botón para cerrar sesión y borrar el recordatorio
+    window.cerrarSesion = () => {
+        localStorage.removeItem('deep_user_email');
+        location.reload(); // Recarga la página y vuelve al login
+    };
+
+
+
+
+window.renderizarEnsayosVoluntario = function(ensayos) {
+    const contenedor = document.getElementById('lista-ensayos');
+    if (!contenedor) return;
+
+    if (ensayos.length === 0) {
+        contenedor.innerHTML = '<p class="text-[10px] text-gray-500">No hay eventos programados.</p>';
+        return;
+    }
+
+    // Ordenar cronológicamente
+    ensayos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+    const colores = {
+        'Ensayo': 'border-gray-500',
+        'Servicio General': 'border-gold',
+        'Ensayo de Equipo': 'border-blue-400',
+        'Soundcheck': 'border-purple-500'
+    };
+
+    contenedor.innerHTML = ''; 
+    
+    ensayos.forEach(ev => {
+        // Creamos la fecha localmente para evitar desfases de zona horaria
+        const [year, month, day] = ev.fecha.split('-').map(Number);
+        const fechaObj = new Date(year, month - 1, day);
+        
+        // Formateador para día de la semana y mes
+        const opciones = { weekday: 'long', day: 'numeric', month: 'long' };
+        const fechaFormateada = fechaObj.toLocaleDateString('es-ES', opciones);
+
+        const colorBorde = colores[ev.tipo] || 'border-gray-800';
+        
+        const div = document.createElement('div');
+        div.className = `border-b border-gray-800 p-4 flex justify-between items-center group hover:bg-[#1a1a1a] transition`;
+        
+        div.innerHTML = `
+            <div class="border-l-2 ${colorBorde} pl-4">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-white">${ev.tipo}</p>
+                <p class="text-[10px] text-gray-400 mt-1 capitalize">${fechaFormateada} | ${ev.hora}</p>
+            </div>
+            <div class="px-2 py-1 rounded border border-gray-700 text-[9px] text-gray-500 font-bold uppercase">
+                ${ev.equipo}
+            </div>
+        `;
+        contenedor.appendChild(div);
+    });
+}
+
+
+
+
+window.cargarEnsayos = async function() {
+    try {
+        const querySnapshot = await window.getDocs(window.collection(window.db, "ensayos"));
+        const lista = [];
+        querySnapshot.forEach(doc => lista.push({ id: doc.id, ...doc.data() }));
+        window.renderizarEnsayosVoluntario(lista);
+    } catch (err) {
+        console.error("Error al cargar agenda:", err);
+    }
+}
+
+
+
+</script>
+</body>
+</html>
