@@ -331,10 +331,10 @@ async function cargarIntegrantesTeam(equipoNombre) {
     }
 }
 
-window.mostrarTab = (tabName) => {
+window.mostrarTab = async (tabName) => {
     const tabs = ['card-inner', 'tab-ensayos', 'tab-setlist', 'tab-asistencia'];
     
-    // 1. Ocultar todo
+    // 1. Ocultar todos los contenedores
     tabs.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -343,7 +343,7 @@ window.mostrarTab = (tabName) => {
         }
     });
 
-    // 2. Mostrar el tab solicitado
+    // 2. Determinar y mostrar el tab solicitado
     const idReal = (tabName === 'perfil') ? 'card-inner' : 'tab-' + tabName;
     const tabElement = document.getElementById(idReal);
     
@@ -351,31 +351,49 @@ window.mostrarTab = (tabName) => {
         tabElement.classList.remove('hidden');
         tabElement.style.display = 'block';
 
-        // --- 3. LÓGICA DE ASISTENCIA: Aquí está el truco ---
+        // 3. Lógica específica para el tab de asistencia
         if (tabName === 'asistencia') {
             const params = new URLSearchParams(window.location.search);
+            const tokenURL = params.get('token');
             const msgNoQr = document.getElementById('mensaje-no-qr');
             const formAsistencia = document.getElementById('formulario-asistencia');
             
-            if (params.get('token')) {
-                // Hay QR: ocultar mensaje, mostrar formulario
-                msgNoQr.classList.add('hidden');
-                formAsistencia.classList.remove('hidden');
+            // Estado inicial: cargando
+            if (msgNoQr) msgNoQr.innerText = "Validando código QR...";
+            if (msgNoQr) msgNoQr.classList.remove('hidden');
+            if (formAsistencia) formAsistencia.classList.add('hidden');
+
+            if (tokenURL) {
+                try {
+                    // Validar token contra Firebase
+                    const tokenRef = window.doc(window.db, "tokens", "diario");
+                    const snap = await window.getDoc(tokenRef);
+
+                    if (snap.exists() && snap.data().token === tokenURL) {
+                        // QR Válido
+                        if (msgNoQr) msgNoQr.classList.add('hidden');
+                        if (formAsistencia) formAsistencia.classList.remove('hidden');
+                    } else {
+                        // QR Inválido o expirado
+                        if (msgNoQr) msgNoQr.innerText = "Este código QR no es válido o ya expiró.";
+                    }
+                } catch (e) {
+                    if (msgNoQr) msgNoQr.innerText = "Error de conexión. Intenta de nuevo.";
+                }
             } else {
-                // No hay QR: mostrar mensaje, ocultar formulario
-                msgNoQr.classList.remove('hidden');
-                formAsistencia.classList.add('hidden');
+                // No hay token en la URL
+                if (msgNoQr) msgNoQr.innerText = "No hay un código QR activo en este momento.";
             }
         }
     }
 
-    // 4. Resetear botones del menú (aquí puedes añadir la lógica para poner el estilo "activo")
+    // 4. Actualizar botones del menú
     document.querySelectorAll('#tabs-nav button').forEach(btn => {
-        // Ponemos el estilo base gris a todos
-        btn.className = "text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition";
-        // Si el botón corresponde al tab actual, le pones el color gold
-        if (btn.innerText.toLowerCase() === tabName) {
-             btn.className = "text-[10px] uppercase tracking-widest text-gold border-b border-gold pb-1";
+        const btnText = btn.innerText.toLowerCase().trim();
+        if (btnText === tabName) {
+            btn.className = "text-[10px] uppercase tracking-widest text-gold border-b border-gold pb-1";
+        } else {
+            btn.className = "text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition";
         }
     });
 };
