@@ -2914,7 +2914,8 @@ window.abrirModal = function() {
             fecha: hoy
         });
 
-        const url = `${window.location.origin}/voluntarios.html?fecha=${hoy}&token=${token}`;
+        const baseUrl = "https://antonydeleon13.github.io/cddmusica/voluntarios.html";
+        const url = `${baseUrl}?fecha=${hoy}&token=${token}`;
         new QRCode(contenedor, { 
             text: url, 
             width: 200, 
