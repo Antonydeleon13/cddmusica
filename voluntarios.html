@@ -353,38 +353,55 @@ window.mostrarTab = async (tabName) => {
 
         // 3. Lógica específica para el tab de asistencia
         if (tabName === 'asistencia') {
-            const params = new URLSearchParams(window.location.search);
-            const tokenURL = params.get('token');
-            const msgNoQr = document.getElementById('mensaje-no-qr');
-            const formAsistencia = document.getElementById('formulario-asistencia');
-            
-            // Estado inicial: cargando
-            if (msgNoQr) msgNoQr.innerText = "Validando código QR...";
-            if (msgNoQr) msgNoQr.classList.remove('hidden');
-            if (formAsistencia) formAsistencia.classList.add('hidden');
+    const params = new URLSearchParams(window.location.search);
+    const tokenURL = params.get('token');
+    const msgNoQr = document.getElementById('mensaje-no-qr');
+    const formAsistencia = document.getElementById('formulario-asistencia');
+    
+    msgNoQr.innerText = "Validando acceso...";
+    msgNoQr.classList.remove('hidden');
+    formAsistencia.classList.add('hidden');
 
-            if (tokenURL) {
-                try {
-                    // Validar token contra Firebase
-                    const tokenRef = window.doc(window.db, "tokens", "diario");
-                    const snap = await window.getDoc(tokenRef);
+    if (tokenURL) {
+        try {
+            // 1. Validar el token del QR
+            const tokenRef = window.doc(window.db, "tokens", "diario");
+            const snap = await window.getDoc(tokenRef);
 
-                    if (snap.exists() && snap.data().token === tokenURL) {
-                        // QR Válido
-                        if (msgNoQr) msgNoQr.classList.add('hidden');
-                        if (formAsistencia) formAsistencia.classList.remove('hidden');
-                    } else {
-                        // QR Inválido o expirado
-                        if (msgNoQr) msgNoQr.innerText = "Este código QR no es válido o ya expiró.";
-                    }
-                } catch (e) {
-                    if (msgNoQr) msgNoQr.innerText = "Error de conexión. Intenta de nuevo.";
+            if (snap.exists() && snap.data().token === tokenURL) {
+                
+                // 2. NUEVA VALIDACIÓN: ¿Ya marcó asistencia hoy?
+                // Aquí deberías buscar en la colección 'asistencia' si ya existe el registro
+                // NOTA: Esto requiere que tengas un identificador único (como el email del usuario logueado)
+                const usuarioLogueado = localStorage.getItem('deep_user_email'); // O como identifiques a tu usuario
+                
+                const asistRef = window.collection(window.db, "asistencia");
+                const q = window.query(asistRef, 
+                    window.where("email", "==", usuarioLogueado), 
+                    window.where("fecha", "==", params.get('fecha'))
+                );
+                const querySnapshot = await window.getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    // YA MARCÓ ASISTENCIA
+                    msgNoQr.innerText = "¡Ya marcaste tu asistencia hoy! Todo está en orden.";
+                    msgNoQr.classList.remove('hidden');
+                } else {
+                    // TODO OK, PUEDE MARCAR
+                    msgNoQr.classList.add('hidden');
+                    formAsistencia.classList.remove('hidden');
                 }
+
             } else {
-                // No hay token en la URL
-                if (msgNoQr) msgNoQr.innerText = "No hay un código QR activo en este momento.";
+                msgNoQr.innerText = "El código QR no es válido o expiró.";
             }
+        } catch (e) {
+            msgNoQr.innerText = "Error de conexión. Intenta de nuevo.";
         }
+    } else {
+        msgNoQr.innerText = "No hay un código QR activo.";
+    }
+}
     }
 
     // 4. Actualizar botones del menú
@@ -692,11 +709,12 @@ window.cargarEnsayos = async function() {
             
             // 4. Registrar en la colección 'asistencia'
             await window.addDoc(window.collection(window.db, "asistencia"), {
-                nombreVoluntario: nombre,
-                fecha: fechaURL, // La fecha que viene del QR
-                hora: new Date().toLocaleTimeString('es-GT'),
-                timestamp: new Date()
-            });
+    nombreVoluntario: nombre,
+    email: localStorage.getItem('deep_user_email'), // ¡Asegúrate de guardar esto!
+    fecha: fechaURL,
+    hora: new Date().toLocaleTimeString('es-GT'),
+    timestamp: new Date()
+});
 
             alert("¡Asistencia registrada con éxito!");
             document.getElementById('nombre-voluntario').value = ""; 
