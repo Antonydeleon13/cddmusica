@@ -74,11 +74,12 @@
         <button onclick="cerrarSesion()" class="text-[9px] uppercase tracking-[0.2em] text-gray-600 hover:text-white transition">Salir</button>
     </div>
 
-    <div class="flex justify-center gap-6 mb-8" id="tabs-nav">
-        <button onclick="mostrarTab('perfil')" class="text-[10px] uppercase tracking-widest text-gold border-b border-gold pb-1">Perfil</button>
-        <button onclick="mostrarTab('ensayos')" class="text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition">Ensayos</button>
-        <button onclick="mostrarTab('setlist')" class="text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition">Setlist</button>
-    </div>
+   <div class="flex justify-center gap-6 mb-8" id="tabs-nav">
+    <button onclick="mostrarTab('perfil')" class="text-[10px] uppercase tracking-widest text-gold border-b border-gold pb-1">Perfil</button>
+    <button onclick="mostrarTab('ensayos')" class="text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition">Ensayos</button>
+    <button onclick="mostrarTab('setlist')" class="text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition">Setlist</button>
+    <button onclick="mostrarTab('asistencia')" class="text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition">Asistencia</button>
+</div>
 
 
         <div class="group perspective w-full h-auto">
@@ -124,9 +125,27 @@
     <div id="lista-canciones" class="space-y-2 text-[11px]">
 </div>
 </div>
+
+<div id="tab-asistencia" class="p-6 min-h-screen flex items-center justify-center">
+        <div class="bg-premium w-full max-w-sm p-6 rounded-2xl shadow-2xl border border-white/10 mx-auto">
+            <h1 class="text-white text-xl font-bold mb-6 text-center">Registro de Asistencia</h1>
+            
+            <input type="text" id="nombre-voluntario" readonly 
+       class="w-full p-3 rounded-lg bg-[#1a1a1a] text-gray-400 border border-gray-700 outline-none mb-4 cursor-not-allowed">
+            
+            <button onclick="marcarAsistencia()" 
+                    class="w-full bg-white hover:bg-[#ffd95a] text-black font-bold py-3 rounded-lg transition-all transform active:scale-95">
+                Registrar Asistencia
+            </button>
+        </div>
+    </div>
+
+
     </div> <!-- card-inner -->
 </div> 
                       
+
+
 
    <script type="module">
    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -187,6 +206,8 @@ window.loginVoluntario = async () => {
 
         if (!snap.empty) {
             currentUser = { id: snap.docs[0].id, ...snap.docs[0].data() };
+            const nombreDisplay = currentUser.nickname || currentUser.nombre || 'Voluntario';
+            document.getElementById('nombre-voluntario').value = nombreDisplay;
             console.log("MI EQUIPO:", currentUser.equipo);
             
             // --- PERSISTENCIA: Guardamos el correo para recordarlo al recargar ---
@@ -294,25 +315,29 @@ async function cargarIntegrantesTeam(equipoNombre) {
 }
 
 window.mostrarTab = (tabName) => {
-    // Ocultar todo
-    document.getElementById('card-inner').classList.add('hidden');
-document.getElementById('tab-ensayos').classList.add('hidden');
-document.getElementById('tab-setlist').classList.add('hidden');
+    // 1. Ocultar todos los tabs posibles en esta vista
+    const tabs = ['card-inner', 'tab-ensayos', 'tab-setlist', 'tab-asistencia'];
+    tabs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+    });
 
-    // Resetear colores de botones (simplificado)
-    document.querySelectorAll('#tabs-nav button').forEach(btn => btn.className = "text-[9px] uppercase tracking-widest text-gray-500");
+    // 2. Resetear botones
+    document.querySelectorAll('#tabs-nav button').forEach(btn => {
+        btn.className = "text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition";
+    });
 
-    // Mostrar el seleccionado
-    if (tabName === 'perfil') {
-        document.getElementById('card-inner').classList.remove('hidden');
-    } else if (tabName === 'ensayos') {
-        document.getElementById('tab-ensayos').classList.remove('hidden');
-        cargarEnsayos();
-    } else if (tabName === 'setlist') {
-        document.getElementById('tab-setlist').classList.remove('hidden');
-        cargarSetlist();
+    // 3. Mostrar el formulario de registro directamente
+    // (O el tab que el usuario necesite ver)
+    const tabElement = document.getElementById('tab-' + tabName) || document.getElementById(tabName);
+    
+    if (tabElement) {
+        tabElement.classList.remove('hidden');
     }
 };
+
+
+
 
 // Funciones para cargar datos desde Firebase
 async function cargarEnsayos() {
@@ -561,9 +586,6 @@ window.cargarEnsayos = async function() {
 
 
 
-</script>
-
-<script>
     window.addEventListener('load', () => {
         // Un pequeño retraso para asegurar que Firebase se haya inicializado
         setTimeout(() => {
@@ -572,6 +594,54 @@ window.cargarEnsayos = async function() {
             }
         }, 500); 
     });
+
+
+
+    window.marcarAsistencia = async function() {
+    // 1. Obtener parámetros de la URL (lo que escaneaste)
+    const params = new URLSearchParams(window.location.search);
+    const tokenURL = params.get('token');
+    const fechaURL = params.get('fecha');
+    const nombre = document.getElementById('nombre-voluntario').value.trim();
+
+    if (!nombre) {
+        alert("Por favor, ingresa tu nombre.");
+        return;
+    }
+
+    if (!tokenURL || !fechaURL) {
+        alert("El código QR no es válido o está incompleto.");
+        return;
+    }
+
+    try {
+        // 2. Verificar en Firebase el token actual
+        const tokenRef = window.doc(window.db, "tokens", "diario");
+        const tokenSnap = await window.getDoc(tokenRef);
+
+        // 3. Validar: ¿El token del QR coincide con el de la base de datos?
+        if (tokenSnap.exists() && tokenSnap.data().token === tokenURL) {
+            
+            // 4. Registrar en la colección 'asistencia'
+            await window.addDoc(window.collection(window.db, "asistencia"), {
+                nombreVoluntario: nombre,
+                fecha: fechaURL, // La fecha que viene del QR
+                hora: new Date().toLocaleTimeString('es-GT'),
+                timestamp: new Date()
+            });
+
+            alert("¡Asistencia registrada con éxito!");
+            document.getElementById('nombre-voluntario').value = ""; 
+        } else {
+            alert("Este código QR ya expiró o no es el del día de hoy.");
+        }
+    } catch (err) {
+        console.error("Error al registrar:", err);
+        alert("Hubo un error al conectar con el sistema. Intenta de nuevo.");
+    }
+};
+
+
 </script>
 
 </body>
