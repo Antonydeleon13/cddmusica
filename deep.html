@@ -15,7 +15,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
- 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
     /* Fondo premium con profundidad */
     body { 
@@ -104,108 +105,493 @@
 
 
 
-       <div class="flex flex-wrap gap-4 mb-8 justify-center items-center">
+     <div class="flex flex-wrap gap-4 mb-8 justify-center items-center">
     <button onclick="cambiarVista('miembros')" class="px-6 py-2 border border-gray-800 hover:border-gold transition uppercase text-xs">Miembros</button>
     <button onclick="cambiarVista('equipos')" class="px-6 py-2 border border-gray-800 hover:border-gold transition uppercase text-xs">TEAMS</button>
     <button onclick="cambiarVista('asistencia')" class="px-6 py-2 border border-gray-800 hover:border-gold transition uppercase text-xs">Asistencia</button>
     <button onclick="cambiarVista('songs')" class="px-6 py-2 border border-gray-800 hover:border-gold transition uppercase text-xs">Songs</button>
     <button onclick="cambiarVista('setlist')" class="px-6 py-2 border border-gray-800 hover:border-gold transition uppercase text-xs">Setlist</button>
-    
     <button onclick="cambiarVista('ensayos')" class="px-6 py-2 border border-gray-800 hover:border-gold transition uppercase text-xs">Ensayos</button>
-    
-    <div class="h-6 w-[1px] bg-gray-800 mx-2"></div>
-    <button onclick="mostrarFormulario()" class="px-6 py-2 border border-gold text-gold hover:bg-gold hover:text-black transition uppercase text-xs font-bold">
-        + Agregar Voluntario
-    </button>
+    <button onclick="cambiarVista('logistica')" class="px-6 py-2 border border-gray-800 hover:border-gold transition uppercase text-xs">Logística</button>
 </div>
 
         
 
         <div id="contenedor-busqueda" class="hidden mb-6">
-    <input type="text" id="buscador" onkeyup="filtrarContenido()" placeholder="Buscar por nombre o nickname..." 
-           class="w-full bg-[#161616] border border-gray-800 rounded-lg p-4 text-white placeholder-gray-500 focus:border-gold outline-none transition-all">
+    <div class="flex gap-4">
+        <!-- Barra de búsqueda -->
+        <input type="text" id="buscador" onkeyup="filtrarContenido()" placeholder="Buscar por nombre, nickname o rol..." 
+               class="flex-grow bg-[#161616] border border-gray-800 rounded-lg p-4 text-white placeholder-gray-500 focus:border-gold outline-none transition-all">
+        
+        <!-- Botón de acción -->
+        <button onclick="mostrarFormulario()" 
+                class="px-6 py-2 border border-gold text-gold hover:bg-gold hover:text-black transition uppercase text-xs font-bold whitespace-nowrap">
+            + Agregar
+        </button>
+    </div>
 </div>
 
 <div id="vista-contenido" class="bg-premium border border-gray-800 rounded-lg p-6 min-h-[400px]">
     <p class="text-gray-500 text-center mt-20">Selecciona una categoría para gestionar la base de datos.</p>
 </div>
-    </div>
 
-    <div id="modal-voluntario" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-    <div class="bg-[#0a0a0a] border border-gold/30 p-8 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-        
+  <div id="modal-voluntario" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div id="form-content" class="bg-[#0a0a0a] border border-gold/30 p-8 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div class="mb-8 text-center">
             <h2 class="text-gold text-xl font-bold uppercase tracking-[0.2em]">Nuevo Voluntario</h2>
             <div class="h-px w-16 bg-gold/50 mx-auto mt-4"></div>
         </div>
 
-        <form id="form-voluntario" class="space-y-4 text-sm">
-    <input type="hidden" id="edit-id">
-            <input type="text" id="nombre" placeholder="Nombre completo" required class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
-            <input type="text" id="nickname" placeholder="Nickname" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
-            <input type="tel" id="telefono" placeholder="Teléfono" required class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
-            <input type="date" id="fechaNac" required class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-gray-400 focus:border-gold outline-none transition-all">
-            <input type="email" id="email" placeholder="Correo electrónico" required class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
-            <input type="text" id="direccion" placeholder="Dirección" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
-            
-            <select id="tipo-rol" onchange="mostrarDetalleRol()" required class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white focus:border-gold outline-none cursor-pointer">
-                <option value="">Selecciona tu rol</option>
-                <option value="instrumento">Instrumento</option>
-                <option value="voz">Voz</option>
-            </select>
-
-            <select id="select-instrumento" class="hidden w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white outline-none focus:border-gold">
-                <option value="">Selecciona el instrumento</option>
-                <option value="piano">Piano</option>
-                <option value="bajo">Bajo</option>
-                <option value="bateria">Batería</option>
-                <option value="guitarra">Guitarra</option>
-                <option value="percusion">Percusión</option>
-                <option value="saxofon">Saxofón</option>
-                <option value="trompeta">Trompeta</option>
-                <option value="violin">Violín</option>
-                <option value="cello">Cello</option>
-            </select>
-
-            <select id="select-voz" class="hidden w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white outline-none focus:border-gold">
-                <option value="">Selecciona tu registro vocal</option>
-                <option value="soprano">Soprano</option>
-                <option value="alto">Alto</option>
-                <option value="tenor">Tenor</option>
-                <option value="baritono">Barítono</option>
-                <option value="bajo">Bajo</option>
-            </select>
-            
-           <div class="border border-gray-800 p-4 rounded-xl space-y-3 bg-[#0a0a0a]">
-    <label class="flex items-center gap-3 text-gray-300 cursor-pointer text-xs uppercase tracking-wider">
-        <input type="checkbox" id="asiste-grupo" onchange="toggleLider()" class="accent-gold"> ¿Asiste a grupo?
-    </label>
-    
-    <div id="campos-lider" class="hidden space-y-3">
-        <input type="text" id="nombre-lider" placeholder="Nombre del líder" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-2 text-white">
-        <input type="tel" id="tel-lider" placeholder="Teléfono del líder" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-2 text-white">
+      <div id="seccion-1" class="space-y-4">
+    <!-- Nombre -->
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Nombre completo</label>
+        <input type="text" id="nombre" placeholder="Nombre completo" required class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
     </div>
 
-   <div class="flex gap-6 py-2 text-gray-400">
-    <label class="flex items-center gap-2 cursor-pointer">
-        <input type="checkbox" id="curso-adl" class="accent-gold"> ADL Cursado
-    </label>
-    <label class="flex items-center gap-2 cursor-pointer">
-        <input type="checkbox" id="bautizado" class="accent-gold"> Bautizado
-    </label>
+    <!-- Nickname -->
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">¿Cómo te gusta que te llamen?</label>
+        <input type="text" id="nickname" placeholder="¿Cómo te gusta que te llamen?" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
+    </div>
+
+    <!-- Teléfono -->
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Teléfono</label>
+        <input type="tel" id="telefono" placeholder="Teléfono" required class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
+    </div>
+
+    <!-- Fecha -->
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Fecha de nacimiento</label>
+        <input type="date" id="fechaNac" required class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-gray-400 focus:border-gold outline-none transition-all">
+    </div>
+
+    <!-- Correo -->
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Correo electrónico</label>
+        <input type="email" id="email" placeholder="Correo electrónico" required class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
+    </div>
+
+    <!-- Dirección -->
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Dirección domicilio</label>
+        <input type="text" id="direccion" placeholder="Dirección" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
+    </div>
+
+
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Dirección de trabajo</label>
+        <input type="text" id="direccion-trabajo" placeholder="Dirección de trabajo" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
+    </div>
+
+
+    <!-- Contacto Emergencia -->
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Nombre de contacto de emergencia</label>
+        <input type="text" id="contacto-emergencia-nombre" placeholder="Nombre de contacto de emergencia" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
+    </div>
+
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Parentesco del contacto</label>
+        <input type="text" id="contacto-emergencia-parentesco" placeholder="Parentesco del contacto" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
+    </div>
+
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Teléfono de emergencia</label>
+        <input type="tel" id="contacto-emergencia-telefono" placeholder="Teléfono de emergencia" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
+    </div>
+
+    <!-- Nuevos campos personales -->
+    
+
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Comida favorita</label>
+        <input type="text" id="comida-favorita" placeholder="Comida favorita" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white placeholder-gray-600 focus:border-gold outline-none transition-all">
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-1">
+            <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Sexo</label>
+            <select id="sexo" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white focus:border-gold outline-none">
+                <option value="">Seleccione...</option>
+                <option value="masculino">Masculino</option>
+                <option value="femenino">Femenino</option>
+            </select>
+        </div>
+        <div class="space-y-1">
+            <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Estado Civil</label>
+            <select id="estado-civil" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white focus:border-gold outline-none">
+                <option value="">Seleccione...</option>
+                <option value="soltero">Soltero/a</option>
+                <option value="casado">Casado/a</option>
+                <option value="divorciado">Divorciado/a</option>
+                <option value="viudo">Viudo/a</option>
+            </select>
+        </div>
+    </div>
+
+   <div class="space-y-1">
+    <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Roles de vida</label>
+    <select id="roles-vida" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer transition-all">
+        <option value="" disabled selected class="text-gray-500">Selecciona tu situación actual</option>
+        <option value="papa">Soy papá</option>
+        <option value="mama">Soy mamá</option>
+        <option value="soltero-solo">Soy soltero, vivo solo</option>
+        <option value="cuidador">Cuido a alguien con dificultades físicas</option>
+        <option value="dependencia-economica">Mi familia depende económicamente de mí</option>
+        <option value="sin-control-horario">No tengo control de mi horario de trabajo</option>
+        <option value="ninguno">Ninguno aplica para mí</option>
+    </select>
 </div>
 
-<div class="flex justify-end gap-4 mt-8 pt-4 border-t border-gray-800">
-    <button type="button" onclick="cerrarFormulario()" class="text-gray-500 hover:text-white transition uppercase text-xs tracking-widest">
-        Cancelar
+<div class="space-y-1">
+    <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Dinámicas de vida</label>
+    <select id="dinamicas-vida" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer transition-all">
+        <option value="" disabled selected class="text-gray-500">Selecciona tu ocupación principal</option>
+        <option value="solo-estudio">Solo estudio</option>
+        <option value="solo-trabajo">Solo trabajo</option>
+        <option value="trabajo-y-estudio">Trabajo y estudio</option>
+        <option value="no-aplica">No aplica ninguno</option>
+    </select>
+</div>
+
+  <div class="space-y-1">
+    <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Formación educativa</label>
+    <select id="formacion-educativa" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer transition-all">
+        <option value="" disabled selected class="text-gray-500">Selecciona tu nivel educativo</option>
+        <option value="primario">Nivel Primario</option>
+        <option value="basico">Nivel Básico</option>
+        <option value="diversificado">Nivel Diversificado</option>
+        <option value="tecnico">Nivel Técnico</option>
+        <option value="universitario">Nivel Universitario</option>
+        <option value="maestria">Nivel Maestría</option>
+        <option value="doctorado">Nivel Doctorado</option>
+        <option value="especializacion">Cursos de especialización</option>
+        <option value="no-aplica">No aplica ninguno</option>
+    </select>
+</div>
+
+   <select id="tipo-rol" onchange="mostrarDetalleRol()" required class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-sm focus:border-gold outline-none cursor-pointer">
+    <option value="">Selecciona tu Instrumento/voz</option>
+    <option value="instrumento">Instrumento</option>
+    <option value="voz">Voz</option>
+</select>
+
+<select id="select-instrumento" class="hidden w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-sm outline-none focus:border-gold mt-2">
+    <option value="">Selecciona el instrumento</option>
+    <option value="Piano">Piano</option>
+    <option value="Bajo">Bajo</option>
+    <option value="Bateria">Batería</option>
+    <option value="Guitarra">Guitarra</option>
+    <option value="Percusion">Percusión</option>
+    <option value="Saxofon">Saxofón</option>
+    <option value="Trompeta">Trompeta</option>
+    <option value="Violin">Violín</option>
+    <option value="Cello">Cello</option>
+</select>
+
+<select id="select-voz" class="hidden w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-sm outline-none focus:border-gold mt-2">
+    <option value="">Selecciona tu registro vocal</option>
+    <option value="Soprano">Soprano</option>
+    <option value="Alto">Alto</option>
+    <option value="Tenor">Tenor</option>
+    <option value="Baritono">Barítono</option>
+    <option value="Bajo">Bajo</option>
+</select>
+
+    <button type="button" onclick="cambiarSeccion(2)" class="w-full py-3 bg-[#1e1e1e] border border-gray-700 text-white rounded-lg hover:bg-gold hover:text-black transition uppercase font-bold text-xs">
+        Siguiente
     </button>
+</div>
+
+
+
+    <div id="seccion-2" class="hidden space-y-4">
+    <h3 class="text-gold font-bold uppercase text-xs mb-2">2. Aspectos Ministeriales</h3>
     
-    <button type="button" id="btn-guardar-voluntario" class="bg-[#D4AF37] text-black px-8 py-3 rounded-lg uppercase font-bold text-xs hover:bg-[#B8860B] transition-colors duration-200">
-        Guardar Voluntario
-    </button>
+    <div class="border border-gray-800 p-4 rounded-xl space-y-3 bg-[#0a0a0a]">
+        <label class="flex items-center gap-3 text-gray-300 cursor-pointer text-xs uppercase tracking-wider">
+            <input type="checkbox" id="asiste-grupo" class="accent-gold"> Asisto a grupo de amistad
+        </label>
+        <label class="flex items-center gap-3 text-gray-300 cursor-pointer text-xs uppercase tracking-wider">
+            <input type="checkbox" id="graduado-adl" class="accent-gold"> Soy graduado de ADL
+        </label>
+        <label class="flex items-center gap-3 text-gray-300 cursor-pointer text-xs uppercase tracking-wider">
+            <input type="checkbox" id="lider-grupo" class="accent-gold"> Yo tengo un grupo de amistad (soy líder)
+        </label>
+        <label class="flex items-center gap-3 text-gray-300 cursor-pointer text-xs uppercase tracking-wider">
+            <input type="checkbox" id="asiste-discipulado" class="accent-gold"> Asisto a un discípulado
+        </label>
+        <label class="flex items-center gap-3 text-gray-300 cursor-pointer text-xs uppercase tracking-wider">
+            <input type="checkbox" id="lider-discipulado" class="accent-gold"> Yo tengo un discípulado (soy líder)
+        </label>
+    </div>
+
+    <div class="border border-gray-800 p-4 rounded-xl space-y-4 bg-[#0a0a0a]">
+        <!-- Nombre de líder -->
+        <div class="space-y-1">
+            <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Nombre de tu líder</label>
+            <input type="text" id="nombre-lider" placeholder="Ej. Juan Pérez" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold transition-all">
+        </div>
+
+        <!-- Teléfono de líder -->
+        <div class="space-y-1">
+            <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Teléfono de tu líder</label>
+            <input type="tel" id="tel-lider" placeholder="Ej. 12345678" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold transition-all">
+        </div>
+        
+
+            <!-- Red -->
+<div class="space-y-1">
+    <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Indica a qué red perteneces</label>
+    <select id="red-pertenencia" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer transition-all">
+        <option value="" disabled selected class="text-gray-500">Selecciona tu red</option>
+        <option value="emprende">Emprende</option>
+        <option value="familiar">Familiar</option>
+        <option value="intercesion">Intercesión</option>
+        <option value="jovenes">Jóvenes</option>
+        <option value="lead">Lead</option>
+        <option value="link">Link</option>
+        <option value="luna-fidalgo">Luna-Fidalgo</option>
+        <option value="matrimonios-jovenes">Matrimonios Jóvenes</option>
+        <option value="pre-juveniles">Pre-Juveniles</option>
+        <option value="rempro">Rempro</option>
+        <option value="trending">Trending</option>
+        <option value="ninguna">No pertenezco a ninguna aún</option>
+    </select>
+</div>
+
+       
+        
+        <!-- Registro VID -->
+        <div class="space-y-1">
+            <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">¿Estás registrado en VID?</label>
+            <select id="registrado-vid" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer transition-all">
+                <option value="">Selecciona una opción</option>
+                <option value="si">Sí, estoy en VID</option>
+                <option value="no">No estoy en VID</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- BOTONES DE LA SECCIÓN 2 -->
+    <div class="flex justify-between gap-4 mt-8 pt-4 border-t border-gray-800">
+        <button type="button" onclick="cambiarSeccion(1)" class="text-gray-500 hover:text-white transition uppercase text-xs tracking-widest">
+            Atrás
+        </button>
+        <button type="button" onclick="cambiarSeccion(3)" class="bg-[#D4AF37] text-black px-8 py-3 rounded-lg uppercase font-bold text-xs hover:bg-[#B8860B] transition-colors duration-200">
+            Siguiente
+        </button>
+    </div>
+</div>
+
+
+
+
+  <div id="seccion-3" class="hidden space-y-4">
+    <h3 class="text-gold font-bold uppercase text-xs mb-2">3. Información Complementaria</h3>
+    
+    <div class="space-y-4">
+        <!-- Transporte -->
+       <div class="space-y-1">
+    <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Medio de transporte</label>
+    <select id="transporte" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer transition-all">
+        <option value="" disabled selected class="text-gray-500">Selecciona tu medio de transporte</option>
+        <option value="vehiculo-propio">Vehículo propio</option>
+        <option value="uber">Uber / Transporte privado</option>
+        <option value="bus">Bus</option>
+        <option value="otro">Otro</option>
+    </select>
+</div>
+        
+        <div class="grid grid-cols-1 gap-4">
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Facilidad para llegar (semana)</label>
+        <select id="facilidad-llegar" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer transition-all">
+            <option value="" disabled selected class="text-gray-500">¿Cómo te queda llegar entre semana?</option>
+            <option value="accesible">Me queda accesible</option>
+            <option value="mas-o-menos">Más o menos</option>
+            <option value="dificil">Difícil</option>
+            <option value="imposible">Imposible</option>
+        </select>
+    </div>
+
+
+
+ <div class="grid grid-cols-2 gap-4">
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Entrada Trabajo/Estudio</label>
+        <input type="time" id="hora-entrada" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold transition-all">
+    </div>
+    <div class="space-y-1">
+        <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Salida Trabajo/Estudio</label>
+        <input type="time" id="hora-salida" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold transition-all">
+    </div>
+</div>
+
+
+            <div class="space-y-3 pt-6 border-t border-gray-800">
+    <h4 class="text-gold font-bold uppercase text-[10px] tracking-widest ml-1">Otras posibilidades de servicio</h4>
+    <div class="grid grid-cols-1 gap-2">
+        <label class="flex items-center gap-2 text-gray-400 text-xs cursor-pointer hover:text-gold transition">
+            <input type="checkbox" name="disp-semana-noche" class="accent-gold"> Puedo servir entre semana / Por las noches
+        </label>
+        <label class="flex items-center gap-2 text-gray-400 text-xs cursor-pointer hover:text-gold transition">
+            <input type="checkbox" name="disp-semana-manana" class="accent-gold"> Puedo servir entre semana / Por las mañanas
+        </label>
+        <label class="flex items-center gap-2 text-gray-400 text-xs cursor-pointer hover:text-gold transition">
+            <input type="checkbox" name="disp-sabado-manana" class="accent-gold"> Puedo servir los días / Sábado por la mañana
+        </label>
+        <label class="flex items-center gap-2 text-gray-400 text-xs cursor-pointer hover:text-gold transition">
+            <input type="checkbox" name="disp-sabado-tarde" class="accent-gold"> Puedo servir los días / Sábado por la tarde
+        </label>
+        <label class="flex items-center gap-2 text-gray-400 text-xs cursor-pointer hover:text-gold transition">
+            <input type="checkbox" name="disp-sabado-noche" class="accent-gold"> Puedo servir los días / Sábado por la noche
+        </label>
+    </div>
+</div>
+          
+
+<div class="space-y-1">
+    <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Entre semana ¿Cómo te queda llegar a Casa de Dios?</label>
+    <select id="facilidad-llegar-cdd" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer transition-all">
+        <option value="" disabled selected class="text-gray-500">Selecciona una opción</option>
+        <option value="sin-problema">Puedo llegar sin problema</option>
+        <option value="con-anticipacion">Con tiempo de anticipación si puedo</option>
+        <option value="no-puedo">Definitivamente no puedo</option>
+    </select>
+</div>
+
+<div class="space-y-1">
+    <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">¿Cuánto tiempo te haces regularmente para venir a tu ensayo?</label>
+    <select id="tiempo-ensayo" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer transition-all">
+        <option value="" disabled selected class="text-gray-500">Selecciona el tiempo</option>
+        <option value="30min">30 min</option>
+        <option value="45min">45 min</option>
+        <option value="1h">1 hora</option>
+        <option value="1:30">1:30 hora</option>
+        <option value="mas-de-1:30h">Más de 1:30 horas</option>
+    </select>
+</div>
+
+<div class="space-y-1">
+    <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">ENTRE SEMANA, ¿Cuál es el promedio de tiempo que haces para llegar a Casa de Dios?</label>
+    <select id="tiempo-entre-semana" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer transition-all">
+        <option value="" disabled selected class="text-gray-500">Selecciona el tiempo</option>
+        <option value="30min">30 min</option>
+        <option value="45min">45 min</option>
+        <option value="1h">1 h</option>
+        <option value="1:30">1:30 h</option>
+        <option value="mas-de-1:30h">Más de 1:30 h</option>
+    </select>
+</div>
+
+
+<div class="space-y-1">
+    <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">ENTRE SEMANA, ¿De cuál zona sales?</label>
+    <select id="zona-salida" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer transition-all">
+        <option value="" disabled selected class="text-gray-500">Selecciona tu ubicación</option>
+        <option value="Palin">Palín,Escuintla</option>
+        <option value="amatitlan">Amatitlán</option>
+        <option value="villa-nueva">Villa Nueva</option>
+        <option value="san-cristobal">San Cristóbal</option>
+        <option value="la-antigua">La Antigua Guatemala</option>
+        <option value="zona-1">Zona 1</option>
+        <option value="zona-2">Zona 2</option>
+        <option value="zona-7">Zona 7</option>
+        <option value="zona-9">Zona 9</option>
+        <option value="zona-10">Zona 10</option>
+        <option value="zona-14">Zona 14</option>
+        <option value="zona-15">Zona 15</option>
+        <option value="zona-16">Zona 16</option>
+        <option value="otra">Otra ubicación</option>
+    </select>
+</div>
+
+
+
+<div class="space-y-1">
+    <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">LOS DOMINGOS, ¿Cuál es el promedio de tiempo que haces para llegar a Casa de Dios?</label>
+    <select id="tiempo-domingo" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer transition-all">
+        <option value="" disabled selected class="text-gray-500">Selecciona el tiempo</option>
+        <option value="30min">30 min</option>
+        <option value="45min">45 min</option>
+        <option value="1h">1 h</option>
+        <option value="1:30">1:30 h</option>
+        <option value="mas-de-1:30h">Más de 1:30 h</option>
+    </select>
+</div>
+
+        <!-- Deportes y Hobbies -->
+        <div class="space-y-3 pt-2">
+            <div class="space-y-1">
+                <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">¿Realizas algún deporte continuo?</label>
+                <select id="hace-deporte" onchange="toggleExtra('hace-deporte', 'campo-deporte')" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer">
+                    <option value="no">No</option>
+                    <option value="si">Sí</option>
+                </select>
+            </div>
+            <input type="text" id="campo-deporte" placeholder="Indica cuál deporte" class="hidden w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold">
+
+            <div class="space-y-1">
+                <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">¿Tienes algún Hobbie?</label>
+                <select id="tiene-hobbie" onchange="toggleExtra('tiene-hobbie', 'campo-hobbie')" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold cursor-pointer">
+                    <option value="no">No</option>
+                    <option value="si">Sí</option>
+                </select>
+            </div>
+            <input type="text" id="campo-hobbie" placeholder="Indica cuál hobbie" class="hidden w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs outline-none focus:border-gold">
+        </div>
+
+        <div class="space-y-1">
+            <label class="text-gold/70 text-[10px] uppercase tracking-widest ml-1 font-bold">Observaciones</label>
+            <textarea id="observaciones" placeholder="¿Alguna observación para servir mejor juntos? (ej: Capacitación...)" class="w-full bg-[#161616] border border-gray-800 rounded-lg p-3 text-white text-xs h-20 outline-none focus:border-gold transition-all"></textarea>
+        </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="flex justify-between gap-4 mt-8 pt-4 border-t border-gray-800">
+        <button type="button" onclick="cambiarSeccion(2)" class="text-gray-500 hover:text-white transition uppercase text-xs tracking-widest">Atrás</button>
+        <button type="button" id="btn-guardar-voluntario" class="bg-[#D4AF37] text-black px-8 py-3 rounded-lg uppercase font-bold text-xs hover:bg-[#B8860B] transition-colors">Guardar</button>
+    </div>
 </div>
 
 </div> </div> </div>
+
+
+
+
+
+
+<div id="asistencia" class="seccion hidden p-6 space-y-6">
+    <h2 class="text-white text-2xl font-bold border-b border-gray-800 pb-2">- ASISTENCIA</h2>
+    
+    <div class="flex flex-col items-center gap-4">
+        <button onclick="generarQR()" class="bg-yellow-500 text-black px-6 py-2 rounded font-bold hover:bg-yellow-400 transition w-full md:w-auto">
+            Generar QR del día
+        </button>
+        <div id="qrcode" class="bg-white p-2 rounded"></div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-white border-collapse">
+            <thead>
+                <tr class="border-b border-gray-700">
+                    <th class="p-3">Nombre</th>
+                    <th class="p-3">Hora</th>
+                    <th class="p-3">Estado</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-asistencia-body">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+
 
 <div id="modal-cancion" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[6000] p-4">
     <div class="bg-[#0a0a0a]/90 border border-gray-800 p-8 rounded-3xl max-w-md w-full shadow-2xl relative overflow-hidden">
@@ -288,9 +674,10 @@
   <script type="module">
   // Importaciones de Firebase
 // 1. Importaciones corregidas (hemos agregado getDoc)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, doc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL, uploadBytesResumable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, doc, updateDoc, deleteDoc, getDoc, where, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL, uploadBytesResumable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
 
 // Configuración
 const firebaseConfig = {
@@ -320,13 +707,16 @@ window.getDownloadURL = getDownloadURL;
 // Funciones de Firestore
 window.collection = collection;
 window.addDoc = addDoc;
+window.setDoc = setDoc;
 window.getDocs = getDocs;
-window.getDoc = getDoc; // <--- ESTO ES LO QUE FALTABA
+window.getDoc = getDoc;
 window.query = query;
 window.doc = doc;
 window.updateDoc = updateDoc;
 window.deleteDoc = deleteDoc;
-window.idSetlistEditando = null; 
+window.where = where;
+window.onSnapshot = onSnapshot; // <--- ¡ESTA ES LA QUE TE FALTA!
+window.idSetlistEditando = null;
 
 
 window.limpiarModalCancion = function() {
@@ -411,15 +801,12 @@ window.logout = function() {
     };
 
     // Guardar Voluntario
-    window.guardarVoluntario = async (datos) => {
-        try {
-            await addDoc(collection(db, "voluntarios"), datos);
-            showToast("¡Voluntario registrado exitosamente!");
-        } catch (e) {
-            console.error("Error: ", e);
-            showToast("Error al registrar voluntario.");
-        }
-    };
+ window.guardarVoluntario = async (datos) => {
+    if (datos.id) {
+        return await updateDoc(doc(db, "voluntarios", datos.id), datos);
+    } 
+    return await addDoc(collection(db, "voluntarios"), datos);
+};
 
     // Nueva función para obtener los miembros
     window.obtenerVoluntarios = async () => {
@@ -431,6 +818,22 @@ window.logout = function() {
             return [];
         }
     };
+
+
+
+document.getElementById('modal-voluntario').addEventListener('click', function(e) {
+    const form = document.getElementById('form-content');
+    
+    // 1. Verificamos si el clic fue EXACTAMENTE en el fondo (el modal)
+    // y no en el formulario ni en ninguno de sus hijos
+    if (e.target === this) {
+        this.classList.add('hidden');
+        
+        // Limpiamos siempre al cerrar por clic externo
+        limpiarFormulario();
+        console.log("Cerrado por clic externo");
+    }
+});
 
 
 
@@ -1015,12 +1418,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. LÓGICA DE VOLUNTARIOS (Se mantiene tu lógica original con la mejora de Toast)
-    const btnVoluntario = document.getElementById('btn-guardar-voluntario');
-    if (btnVoluntario) {
-        btnVoluntario.addEventListener('click', async (e) => {
-            e.preventDefault();
-            
+
+
+   // 1. Función auxiliar (siempre mantenla fuera)
+function getSelectText(id) {
+    const el = document.getElementById(id);
+    return (el && el.selectedIndex >= 0) ? el.options[el.selectedIndex].text : '';
+}
+
+
+// 2. Tu bloque del evento de guardado
+const btnVoluntario = document.getElementById('btn-guardar-voluntario');
+
+if (btnVoluntario) {
+    // Usamos .onclick para reemplazar cualquier listener anterior y evitar duplicados
+    btnVoluntario.onclick = async (e) => {
+        e.preventDefault();
+        
+        // Bloqueo inmediato para evitar doble clic
+        if (btnVoluntario.disabled) return;
+        btnVoluntario.disabled = true;
+        btnVoluntario.innerText = "Procesando...";
+
+        try {
             const idInput = document.getElementById('edit-id');
             const id = idInput ? idInput.value : '';
 
@@ -1031,98 +1451,149 @@ document.addEventListener('DOMContentLoaded', () => {
                 fechaNacimiento: document.getElementById('fechaNac')?.value || '',
                 email: document.getElementById('email')?.value || '',
                 direccion: document.getElementById('direccion')?.value || '',
-                rol: document.getElementById('tipo-rol')?.value || '',
+                direccionTrabajo: document.getElementById('direccion-trabajo')?.value || '',
+                comidaFavorita: document.getElementById('comida-favorita')?.value || '',
+                sexo: getSelectText('sexo'),
+                estadoCivil: getSelectText('estado-civil'),
+                rolesVida: getSelectText('roles-vida'),
+                dinamicasVida: getSelectText('dinamicas-vida'),
+                formacionEducativa: getSelectText('formacion-educativa'),
+                contactoEmergenciaNombre: document.getElementById('contacto-emergencia-nombre')?.value || '',
+                contactoEmergenciaParentesco: document.getElementById('contacto-emergencia-parentesco')?.value || '',
+                contactoEmergenciaTelefono: document.getElementById('contacto-emergencia-telefono')?.value || '',
+                rol: getSelectText('tipo-rol'),
                 detalle: document.getElementById('tipo-rol')?.value === 'instrumento' ? 
-                         document.getElementById('select-instrumento')?.value : 
-                         document.getElementById('select-voz')?.value,
+                         getSelectText('select-instrumento') : getSelectText('select-voz'),
                 asisteGrupo: document.getElementById('asiste-grupo')?.checked || false,
+                graduadoAdl: document.getElementById('graduado-adl')?.checked || false,
+                liderGrupo: document.getElementById('lider-grupo')?.checked || false,
+                asisteDiscipulado: document.getElementById('asiste-discipulado')?.checked || false,
+                liderDiscipulado: document.getElementById('lider-discipulado')?.checked || false,
                 lider: document.getElementById('nombre-lider')?.value || '',
                 telLider: document.getElementById('tel-lider')?.value || '',
-                adl: document.getElementById('curso-adl')?.checked || false,
-                bautizado: document.getElementById('bautizado')?.checked || false,
-                fechaRegistro: id ? undefined : new Date().toISOString() 
+                red: getSelectText('red-pertenencia'),
+                registradoVid: getSelectText('registrado-vid'),
+                transporte: getSelectText('transporte'),
+                facilidadLlegarSemana: getSelectText('facilidad-llegar'),
+                horaEntrada: document.getElementById('hora-entrada')?.value || '',
+                horaSalida: document.getElementById('hora-salida')?.value || '',
+                facilidadLlegarCdd: getSelectText('facilidad-llegar-cdd'),
+                tiempoEnsayo: getSelectText('tiempo-ensayo'),
+                tiempoEntreSemana: getSelectText('tiempo-entre-semana'),
+                zonaSalida: getSelectText('zona-salida'),
+                tiempoDomingo: getSelectText('tiempo-domingo'),
+                dispSemanaNoche: document.querySelector('input[name="disp-semana-noche"]')?.checked || false,
+                dispSemanaManana: document.querySelector('input[name="disp-semana-manana"]')?.checked || false,
+                dispSabadoManana: document.querySelector('input[name="disp-sabado-manana"]')?.checked || false,
+                dispSabadoTarde: document.querySelector('input[name="disp-sabado-tarde"]')?.checked || false,
+                dispSabadoNoche: document.querySelector('input[name="disp-sabado-noche"]')?.checked || false,
+                haceDeporte: document.getElementById('hace-deporte')?.value || '',
+                deporteCual: document.getElementById('campo-deporte')?.value || '',
+                tieneHobbie: document.getElementById('tiene-hobbie')?.value || '',
+                hobbieCual: document.getElementById('campo-hobbie')?.value || '',
+                observaciones: document.getElementById('observaciones')?.value || '',
+                fechaRegistro: id ? undefined : new Date().toISOString()
             };
 
             if (!datos.nombre) {
                 window.showToast("El nombre es obligatorio");
+                btnVoluntario.disabled = false;
+                btnVoluntario.innerText = "Guardar";
                 return;
             }
 
-            try {
-                btnVoluntario.disabled = true;
-                if (id) {
-                    await window.updateDoc(window.doc(window.db, "voluntarios", id), datos);
-                    window.showToast("Voluntario actualizado");
-                } else {
-                    datos.equipo = "Sin equipo";
-                    await window.guardarVoluntario(datos);
-                    window.showToast("Voluntario guardado");
-                }
-                
-                window.cerrarFormulario();
-                document.getElementById('form-voluntario')?.reset();
-                window.cambiarVista('miembros');
-            } catch (err) {
-                console.error("Error:", err);
-                window.showToast("Error al procesar: " + err.message);
-            } finally {
-                btnVoluntario.disabled = false;
+            if (id && id.trim() !== "") {
+                await window.updateDoc(window.doc(window.db, "voluntarios", id), datos);
+                window.showToast("Voluntario actualizado");
+            } else {
+                datos.equipo = "Sin equipo";
+                await window.guardarVoluntario(datos);
+                window.showToast("Voluntario guardado");
             }
-        });
-    }
+            
+            window.cerrarFormulario();
+            document.getElementById('form-voluntario')?.reset();
+            window.cambiarVista('miembros');
+        } catch (err) {
+            console.error("Error:", err);
+            window.showToast("Error al procesar: " + err.message);
+        } finally {
+            btnVoluntario.disabled = false;
+            btnVoluntario.innerText = "Guardar";
+        }
+    };
+}
 });
 
 
-
-window.mostrarFormulario = function() { 
-    document.getElementById('modal-voluntario').classList.remove('hidden'); 
+window.cerrarFormulario = function() {
+    const modal = document.getElementById('modal-voluntario'); // ID correcto según tu HTML
+    if (modal) {
+        modal.classList.add('hidden');
+        limpiarFormulario(); // Limpiar siempre al cerrar
+        console.log("Formulario cerrado y limpiado");
+    }
 };
 
-// Se consolidó la función cerrarFormulario para evitar el error de "already declared"
-window.cerrarFormulario = function() { 
-    document.getElementById('form-voluntario').reset();
-    document.getElementById('edit-id').value = ''; 
-    document.getElementById('campos-lider').classList.add('hidden'); 
-    document.getElementById('modal-voluntario').classList.add('hidden'); 
+window.limpiarFormulario = function() {
+    // 1. Resetear formulario si existe
+    const form = document.getElementById('modal-voluntario-form');
+    if (form) form.reset();
+    
+    // 2. Limpiar inputs manuales (excluyendo campos ocultos de ID)
+    const inputs = document.querySelectorAll('#modal-voluntario input, #modal-voluntario select, #modal-voluntario textarea');
+    inputs.forEach(input => {
+        if(input.type !== 'hidden') {
+            input.value = '';
+        }
+    });
+    
+    // 3. Resetear selects de Rol/Voz
+    document.getElementById('select-instrumento').classList.add('hidden');
+    document.getElementById('select-voz').classList.add('hidden');
+    
+    // 4. Limpiar clases visuales de checkboxes
+    const visuals = document.querySelectorAll('.checkbox-visual');
+    visuals.forEach(v => v.classList.remove('bg-gold', 'border-gold'));
+    
+    console.log("Formulario limpiado");
+};
+
+window.mostrarFormulario = function() { 
+    limpiarFormulario(); // Limpiar antes de abrir para evitar datos basura
+    document.getElementById('modal-voluntario').classList.remove('hidden'); 
 };
 
 window.listaVoluntariosActual = [];
 
 window.mostrarDetalleRol = function() {
     const rol = document.getElementById('tipo-rol').value;
-    document.getElementById('select-instrumento').classList.toggle('hidden', rol !== 'instrumento');
-    document.getElementById('select-voz').classList.toggle('hidden', rol !== 'voz');
+    // Ocultar ambos primero y mostrar solo el necesario
+    document.getElementById('select-instrumento').classList.add('hidden');
+    document.getElementById('select-voz').classList.add('hidden');
+    
+    if (rol === 'instrumento') document.getElementById('select-instrumento').classList.remove('hidden');
+    if (rol === 'voz') document.getElementById('select-voz').classList.remove('hidden');
 };
 
-
-  
-   window.toggleLider = function() {
+window.toggleLider = function() {
     const isChecked = document.getElementById('asiste-grupo').checked;
     const contenedor = document.getElementById('campos-lider');
-    
     if (contenedor) {
-        if (isChecked) {
-            contenedor.classList.remove('hidden');
-        } else {
-            contenedor.classList.add('hidden');
-        }
+        contenedor.classList.toggle('hidden', !isChecked);
     }
 };
 
 window.showToast = function(message) {
     const container = document.getElementById('toast-container');
-    if (!container) return; // Validación por si el contenedor no existe
+    if (!container) return;
 
     const toast = document.createElement('div');
     toast.className = "bg-[#0a0a0a] border border-gold text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 animate-in slide-in-from-right duration-300";
-    toast.innerHTML = `
-        <span class="text-gold">✓</span>
-        <span class="text-sm tracking-wide">${message}</span>
-    `;
+    toast.innerHTML = `<span class="text-gold">✓</span><span class="text-sm tracking-wide">${message}</span>`;
     
     container.appendChild(toast);
     
-    // Eliminar el toast después de 3 segundos
     setTimeout(() => {
         toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
         setTimeout(() => toast.remove(), 500);
@@ -1135,21 +1606,30 @@ window.cambiarVista = async function(vista) {
     const busquedaContenedor = document.getElementById('contenedor-busqueda');
     const buscadorInput = document.getElementById('buscador');
 
-    if (!contenedor) return; // Validación de seguridad
+    // 1. Validación de seguridad para el contenedor principal
+    if (!contenedor) {
+        console.error("No se encontró el elemento 'vista-contenido'");
+        return; 
+    }
 
-    // Limpiar el buscador al cambiar de vista
+    // 2. Limpiar el buscador si existe
     if (buscadorInput) {
         buscadorInput.value = '';
-        filtrarContenido(); // Asegurar que se muestre todo al limpiar
+        if (typeof filtrarContenido === 'function') {
+            filtrarContenido();
+        }
     }
 
-    // Controlar visibilidad del buscador: solo se muestra en 'miembros'
-    if (vista === 'miembros') {
-        busquedaContenedor.classList.remove('hidden');
-    } else {
-        busquedaContenedor.classList.add('hidden');
+    // 3. Controlar visibilidad del buscador (con validación de existencia)
+    if (busquedaContenedor) {
+        if (vista === 'miembros') {
+            busquedaContenedor.classList.remove('hidden');
+        } else {
+            busquedaContenedor.classList.add('hidden');
+        }
     }
 
+    // 4. Actualizar el título de la vista
     contenedor.innerHTML = `<h2 class="text-gold uppercase tracking-widest mb-8 text-lg font-bold"> - ${vista.toUpperCase()}</h2>`;
 
    if (vista === 'miembros') {
@@ -1167,7 +1647,7 @@ window.cambiarVista = async function(vista) {
         voluntarios.forEach((v, index) => {
             const fechaNac = v.fechaNacimiento ? v.fechaNacimiento.split('-').reverse().join('/') : '-';
 
-            html += `
+        html += `
     <div class="voluntario-card bg-[#161616] rounded-lg border border-gray-800 overflow-hidden hover:border-gray-700 transition-all" 
          data-nombre="${(v.nombre || '').toLowerCase()}" 
          data-nickname="${(v.nickname || '').toLowerCase()}">
@@ -1176,41 +1656,100 @@ window.cambiarVista = async function(vista) {
             <button onclick="toggleAcordeon('info-${index}')" class="w-full p-4 flex justify-between items-center hover:bg-[#1f1f1f] transition">
                 <div class="text-left">
                     <h3 class="text-white font-bold tracking-wide">${v.nickname || v.nombre || 'Sin nombre'}</h3>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest">${v.rol || 'Sin rol'}</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest">${v.rol}${v.detalle ? ` • ${v.detalle}` : ''}</p>
                 </div>
                 <div class="flex items-center gap-4" onclick="event.stopPropagation()">
                     <button onclick="editarVoluntario('${v.id}')" class="text-gray-600 hover:text-white transition">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     </button>
-                        <button onclick="eliminarVoluntario('${v.id}')" class="text-gray-600 hover:text-red-500 transition">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
+                    <button onclick="eliminarVoluntario('${v.id}')" class="text-gray-600 hover:text-red-500 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
                     <svg class="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
             </button>
         </div>
         
-        <div id="info-${index}" class="hidden p-6 border-t border-gray-800 bg-[#0d0d0d] text-xs text-gray-300 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-3">
-                <div class="flex items-center gap-2"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> <span class="font-bold text-white">${v.nombre || '-'}</span></div>
-                <div class="flex items-center gap-2"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg> <span>${v.telefono || '-'}</span></div>
-                <div class="flex items-center gap-2"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> <span>${fechaNac}</span></div>
-                <div class="flex items-center gap-2"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> <span>${v.email || '-'}</span></div>
+        <div id="info-${index}" class="hidden p-6 border-t border-gray-800 bg-[#0d0d0d] text-[11px] text-gray-400 space-y-6">
+            
+            <!-- SECCIÓN 1: DATOS PERSONALES -->
+           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="col-span-2 md:col-span-4 text-gold font-bold uppercase border-b border-gray-800 pb-2 flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> Datos Personales
+    </div>
+
+    <div><span class="text-gray-600 flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Nombre</span><br><span class="text-white">${(v.nombre || '') + ' ' + (v.apellidoPaterno || '') + ' ' + (v.apellidoMaterno || '')}</span></div>
+    <div><span class="text-gray-600">¿Cómo te gusta que te llamen?</span><br><span class="text-white">${v.nickname || '-'}</span></div>
+    <div><span class="text-gray-600 flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg> Teléfono</span><br><span class="text-white">${v.telefono || '-'}</span></div>
+    <div><span class="text-gray-600">Email</span><br><span class="text-white">${v.email || '-'}</span></div>
+
+    <div><span class="text-gray-600">Nacimiento</span><br><span class="text-white">${v.fechaNacimiento ? (() => { const d = new Date(v.fechaNacimiento); const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]; return `${d.getUTCDate()} de ${meses[d.getUTCMonth()]} del ${d.getUTCFullYear()}`; })() : '-'}</span></div>
+    <div><span class="text-gray-600">Estado Civil</span><br><span class="text-white">${v.estadoCivil || '-'}</span></div>
+    <div><span class="text-gray-600">Comida Favorita</span><br><span class="text-white">${v.comidaFavorita || '-'}</span></div>
+    <div><span class="text-gray-600">Educación</span><br><span class="text-white">${v.formacionEducativa || '-'}</span></div>
+
+    <div class="col-span-2 md:col-span-4 text-gold/50 text-[9px] uppercase tracking-widest border-t border-gray-800 pt-2">Contacto de Emergencia</div>
+    <div><span class="text-gray-600">Nombre</span><br><span class="text-white">${v.contactoEmergenciaNombre || '-'}</span></div>
+    <div><span class="text-gray-600">Parentesco</span><br><span class="text-white">${v.contactoEmergenciaParentesco || '-'}</span></div>
+    <div class="col-span-2"><span class="text-gray-600">Teléfono</span><br><span class="text-white">${v.contactoEmergenciaTelefono || '-'}</span></div>
+
+    <div class="col-span-2 md:col-span-4 text-gold/50 text-[9px] uppercase tracking-widest border-t border-gray-800 pt-2">Información Adicional</div>
+    <div class="col-span-2"><span class="text-gray-600">Dirección Domicilio</span><br><span class="text-white">${v.direccion || '-'}</span></div>
+    <div class="col-span-2"><span class="text-gray-600">Dirección Trabajo</span><br><span class="text-white">${v.direccionTrabajo || '-'}</span></div>
+    <div class="col-span-2"><span class="text-gray-600">Rol / Detalle</span><br><span class="text-white">${v.rol || '-'} (${v.detalle || '-'})</span></div>
+    <div class="col-span-2"><span class="text-gray-600">Roles / Dinámicas</span><br><span class="text-white">${v.rolesVida || '-'} | ${v.dinamicasVida || '-'}</span></div>
+</div>
+
+
+
+            <!-- SECCIÓN 3: MINISTERIO -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-800">
+    <div class="col-span-2 md:col-span-4 text-gold font-bold uppercase border-b border-gray-800 pb-2 flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg> Ministerio
+    </div>
+    
+    <div><span class="text-gray-600">Nombre del líder</span><br><span class="text-white">${v.lider || '-'}</span></div>
+    <div><span class="text-gray-600">Teléfono del Líder</span><br><span class="text-white">${v.telLider || '-'}</span></div>
+    <div><span class="text-gray-600">Red a la que pertenece</span><br><span class="text-white">${v.red || '-'}</span></div>
+    <div><span class="text-gray-600">¿Estás registrado en VID?</span><br><span class="text-white">${v.registradoVid || '-'}</span></div>
+    
+    <div><span class="text-gray-600">¿Estás graduado del ADL?</span><br><span class="text-white">${v.graduadoAdl ? 'Sí' : 'No'}</span></div>
+    <div><span class="text-gray-600">¿Asiste a Grupo de amistad?</span><br><span class="text-white">${v.asisteGrupo ? 'Sí' : 'No'}</span></div>
+    <div><span class="text-gray-600">¿Asiste a Discipulado?</span><br><span class="text-white">${v.asisteDiscipulado ? 'Sí' : 'No'}</span></div>
+</div>
+
+            <!-- SECCIÓN 4: LOGÍSTICA -->
+           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-800">
+    <div class="col-span-2 md:col-span-4 text-gold font-bold uppercase border-b border-gray-800 pb-2 flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Logística y Tiempos
+    </div>
+    
+    <div><span class="text-gray-600">Transporte</span><br><span class="text-white">${v.transporte || '-'}</span></div>
+    <div><span class="text-gray-600">Horario Laboral</span><br><span class="text-white">${v.horaEntrada || '-'} - ${v.horaSalida || '-'}</span></div>
+    <div><span class="text-gray-600">Zona Salida</span><br><span class="text-white">${v.zonaSalida || '-'}</span></div>
+    <div><span class="text-gray-600">¿Cuánto tiempo te haces al ensayo?</span><br><span class="text-white">${v.tiempoEnsayo || '-'}</span></div>
+    <div class="col-span-2"><span class="text-gray-600">Entre semana ¿Cómo te queda llegar a Casa de Dios?</span><br><span class="text-white">${(v.facilidadLlegarCdd || '').replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || ' '}</span></div>
+    <div><span class="text-gray-600">Tiempo a CDD (Semana)</span><br><span class="text-white">${v.tiempoEntreSemana || '-'}</span></div>
+    <div><span class="text-gray-600">Tiempo a CDD (Domingo)</span><br><span class="text-white">${v.tiempoDomingo || '-'}</span></div>
+    <div><span class="text-gray-600">Deporte</span><br><span class="text-white">${v.haceDeporte || '-'} ${v.deporteCual ? '(' + v.deporteCual + ')' : ''}</span></div>
+    <div><span class="text-gray-600">Hobbie</span><br><span class="text-white">${v.tieneHobbie || '-'} ${v.hobbieCual ? '(' + v.hobbieCual + ')' : ''}</span></div>
+    
+    <div class="col-span-2 md:col-span-4">
+        <span class="text-gray-600">Disponibilidad</span>
+        <div class="flex flex-wrap gap-1 mt-1">
+            ${v.dispSemanaManana ? '<span class="px-1.5 py-0.5 bg-gray-800 text-gold rounded text-[9px]">Mañanas</span>' : ''}
+            ${v.dispSemanaNoche ? '<span class="px-1.5 py-0.5 bg-gray-800 text-gold rounded text-[9px]">Noches</span>' : ''}
+            ${v.dispSabadoManana ? '<span class="px-1.5 py-0.5 bg-gray-800 text-gold rounded text-[9px]">Sáb. Mañanas</span>' : ''}
+            ${v.dispSabadoTarde ? '<span class="px-1.5 py-0.5 bg-gray-800 text-gold rounded text-[9px]">Sáb. Tardes</span>' : ''}
+            ${v.dispSabadoNoche ? '<span class="px-1.5 py-0.5 bg-gray-800 text-gold rounded text-[9px]">Sáb. Noches</span>' : ''}
+            ${!v.dispSemanaManana && !v.dispSemanaNoche && !v.dispSabadoManana && !v.dispSabadoTarde && !v.dispSabadoNoche ? '<span class="text-gray-700 italic text-[9px]">Sin disponibilidad</span>' : ''}
+        </div>
+    </div>
+
+                <div class="col-span-2"><span class="text-gray-600">Observaciones</span><br><i class="text-white">${v.observaciones || 'Ninguna'}</i></div>
             </div>
 
-            <div class="space-y-3">
-                <div class="flex items-center gap-2"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg> <span>${v.direccion || '-'}</span></div>
-                <div class="space-y-1">
-                    <div class="flex items-center gap-2"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> <span class="text-white font-medium">${v.lider || 'Sin líder'}</span></div>
-                    <div class="flex items-center gap-2 ml-6"><svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg> <span>${v.telLider || '-'}</span></div>
-                </div>
-                <div class="flex gap-4">
-                    <span>ADL: ${v.adl ? '<b class="text-green-500">Sí</b>' : '<b class="text-red-500">No</b>'}</span>
-                    <span>Bautizado: ${v.bautizado ? '<b class="text-green-500">Sí</b>' : '<b class="text-red-500">No</b>'}</span>
-                </div>
-            </div>
-
-            <p class="md:col-span-2 text-[9px] text-gray-600 border-t border-gray-800 pt-4 mt-2 italic">
+            <p class="text-[9px] text-gray-700 border-t border-gray-800 pt-4 italic">
                 Registrado el: ${v.fechaRegistro ? v.fechaRegistro.split('T')[0].split('-').reverse().join('/') : 'N/A'}
             </p>
         </div>
@@ -1220,6 +1759,8 @@ window.cambiarVista = async function(vista) {
         html += '</div>';
         contenedor.innerHTML += html;
     } 
+    
+
     
     else if (vista === 'equipos') {
     const voluntarios = await window.obtenerVoluntarios();
@@ -1271,7 +1812,8 @@ window.cambiarVista = async function(vista) {
     }
     
 else if (vista === 'ensayos') {
-        contenedor.innerHTML = `
+        // Usamos += para mantener el título generado al inicio de la función
+        contenedor.innerHTML += `
             <div class="flex justify-between items-center mb-8">
                 <h2 class="text-gold uppercase tracking-widest mb-6 text-lg font-bold">Gestión de Ensayos</h2>
                 <button onclick="abrirModalEnsayo()" class="text-gold border border-gold px-4 py-2 text-xs uppercase hover:bg-gold hover:text-black transition">
@@ -1279,10 +1821,46 @@ else if (vista === 'ensayos') {
                 </button>
             </div>
             <div id="lista-ensayos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                </div>
+            </div>
         `;
-        // Llamamos a la función que carga los datos de Firebase
-        window.cargarEnsayos();
+
+        if (typeof window.cargarEnsayos === 'function') {
+            window.cargarEnsayos();
+        } else {
+            console.warn("La función cargarEnsayos no está definida en window.");
+            const lista = document.getElementById('lista-ensayos');
+            if (lista) lista.innerHTML = '<p class="text-gray-500">Error: No se pudo cargar la gestión de ensayos.</p>';
+        }
+    }
+
+    else if (vista === 'logistica') {
+        // Usamos += para mantener el título generado al inicio de la función
+        contenedor.innerHTML += `
+            <div class="p-6 bg-[#0a0a0a] rounded-xl border border-gold/20">
+                <h2 class="text-gold text-sm font-bold uppercase tracking-widest mb-4">Panel de Logística y Estadísticas</h2>
+                
+                <div class="flex gap-4">
+                    <select id="select-campo-stats" onchange="generarEstadistica()" class="w-1/2 bg-[#161616] border border-gray-800 text-white p-3 rounded">
+                        <option value="">Cargando opciones...</option>
+                    </select>
+                </div>
+
+                <div class="w-64 h-64 mt-8 mx-auto">
+                    <canvas id="chartDona"></canvas>
+                </div>
+                
+                <div id="lista-filtrada" class="mt-8 text-gray-400"></div>
+            </div>
+        `;
+        
+        // El setTimeout garantiza que los elementos existen en el DOM antes de llenarlos
+        setTimeout(() => {
+            if (typeof window.cargarPreguntasAlSelect === 'function') {
+                window.cargarPreguntasAlSelect();
+            } else {
+                console.error("La función cargarPreguntasAlSelect no está definida globalmente.");
+            }
+        }, 50); 
     }
 
 
@@ -1303,6 +1881,50 @@ else if (vista === 'ensayos') {
     `;
     cargarSongs();
 }
+
+
+
+if (vista === 'asistencia') {
+    contenedor.innerHTML = `
+        <div id="asistencia-panel" class="max-w-4xl mx-auto p-6 md:p-8 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl">
+            <div class="flex justify-between items-center mb-8 pb-6 border-b border-white/5">
+                <div>
+                    <h2 class="text-2xl font-bold text-white tracking-wide">Panel de Asistencia</h2>
+                    <p class="text-gray-500 text-sm">Control diario de voluntarios</p>
+                </div>
+                <button onclick="generarQR()" class="bg-white hover:bg-gold text-black px-6 py-2 rounded-lg font-bold transition-all duration-300 transform hover:scale-105 active:scale-95">
+                    Generar QR
+                </button>
+            </div>
+
+            <div class="flex flex-col items-center justify-center my-8 p-6 bg-white/5 rounded-xl border border-white/5">
+                <div id="qrcode" class="p-2 bg-white rounded-lg shadow-lg"></div>
+                <p class="text-gray-400 text-xs mt-4 uppercase tracking-widest font-semibold">Código QR de acceso</p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-gray-300">
+                    <thead class="text-xs uppercase border-b border-white/10 text-gray-500">
+                        <tr>
+                            <th class="px-4 py-3">Voluntario</th>
+                            <th class="px-4 py-3">Hora</th>
+                            <th class="px-4 py-3 text-right">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-asistencia-body" class="divide-y divide-white/5">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    // Cargamos los datos después de inyectar el HTML
+    if (typeof window.cargarAsistenciaHoy === 'function') {
+        window.cargarAsistenciaHoy();
+    }
+}
+
+
     else if (vista === 'setlist') {
     contenedor.innerHTML = `
         <div id="editor-setlist"></div>
@@ -1366,6 +1988,180 @@ window.inicializarDragAndDrop = function() {
         });
     });
 };
+
+
+
+
+// Función para procesar las estadísticas
+window.generarEstadistica = async () => {
+    const campo = document.getElementById('select-campo-stats').value;
+    const contenedorLista = document.getElementById('lista-filtrada');
+    const canvas = document.getElementById('chartDona');
+    
+    if (!campo) return;
+
+    let datos = await obtenerDatosFirebase('voluntarios'); 
+
+    // --- LÓGICA CORREGIDA PARA FECHAS ---
+    datos.forEach(item => {
+        if (campo === 'fechaNacimiento' && item.fechaNacimiento) {
+            // Extraer solo el año: "1996-05-24" -> "1996"
+            item.fechaNacimiento = item.fechaNacimiento.split('-')[0];
+        } 
+        else if (campo === 'mesCumpleanos' && item.fechaNacimiento) {
+            // Extraer solo el mes en texto: "1996-05-24" -> "MAYO"
+            const mesIdx = parseInt(item.fechaNacimiento.split('-')[1]) - 1;
+            const fecha = new Date(2020, mesIdx, 1);
+            item.mesCumpleanos = fecha.toLocaleDateString('es-ES', { month: 'long' }).toUpperCase();
+        }
+    });
+
+    const sinonimos = {
+        'fotos': 'FOTOGRAFÍA', 'fotografia': 'FOTOGRAFÍA', 'fotógrafo': 'FOTOGRAFÍA',
+        'correr': 'CORRER', 'carrera': 'CARRERA', 'maraton': 'MARATÓN', 'maratón': 'MARATÓN', 'running': 'RUNNING',
+        'futbol': 'FÚTBOL', 'fútbol': 'FÚTBOL',
+        'cine': 'PELÍCULAS', 'peliculas': 'PELÍCULAS',
+        'videojuegos': 'GAMING', 'gamer': 'GAMING'
+    };
+
+    window.datosAgrupados = []; 
+
+    datos.forEach(item => {
+        let valRaw = String(item[campo] || 'No definido').toLowerCase().trim();
+        let grupo;
+        
+        // Detección de booleanos (SI/NO)
+        if (item[campo] === true || item[campo] === false || ['si', 'no', 'sí', 'no'].includes(valRaw)) {
+            grupo = (valRaw === 'true' || valRaw === 'si' || valRaw === 'sí') ? 'SÍ' : 'NO';
+        } else {
+            grupo = sinonimos[valRaw] || valRaw.toUpperCase();
+        }
+
+        // PRIORIDAD: NICKNAME (Si no existe, ponemos "SIN NICKNAME")
+        const identificador = item.nickname || "SIN NICKNAME";
+
+        let grupoExistente = window.datosAgrupados.find(g => g.nombre === grupo);
+        
+        if (grupoExistente) {
+            grupoExistente.miembros.push(identificador);
+        } else {
+            window.datosAgrupados.push({ nombre: grupo, miembros: [identificador] });
+        }
+    });
+
+    // Ordenar grupos alfabéticamente para que la dona no salte
+    window.datosAgrupados.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+    // Configuración de la gráfica
+    if (window.miDona) window.miDona.destroy();
+    
+    window.miDona = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+            labels: window.datosAgrupados.map(g => g.nombre),
+            datasets: [{
+                data: window.datosAgrupados.map(g => g.miembros.length),
+                backgroundColor: ['#D4AF37', '#ffffff', '#333333', '#555555', '#777777']
+            }]
+        },
+        options: { 
+            responsive: true, 
+            plugins: { legend: { labels: { color: '#ffffff' } } },
+            onClick: (e, elements) => {
+                if (elements.length > 0) {
+                    const index = elements[0].index;
+                    window.mostrarListaDetallada(window.datosAgrupados[index].nombre);
+                }
+            }
+        }
+    });
+
+    contenedorLista.innerHTML = `<p class="text-gray-400 italic">Haz clic en una sección de la dona para ver los integrantes.</p>`;
+};
+
+// Función auxiliar para mostrar lista
+window.mostrarListaDetallada = (nombreGrupo) => {
+    const contenedor = document.getElementById('lista-filtrada');
+    const grupoEncontrado = window.datosAgrupados.find(g => g.nombre === nombreGrupo);
+    
+    if (!grupoEncontrado) return;
+
+    contenedor.innerHTML = `
+        <div class="bg-[#161616] p-4 rounded border border-gold mt-4">
+            <h3 class="text-gold font-bold text-lg mb-3">Integrantes en: ${nombreGrupo} (${grupoEncontrado.miembros.length})</h3>
+            <ul class="grid grid-cols-2 gap-2 text-gray-300">
+                ${grupoEncontrado.miembros.map(n => `<li>• ${n}</li>`).join('')}
+            </ul>
+        </div>
+    `;
+};
+
+
+window.cargarPreguntasAlSelect = async () => {
+    const select = document.getElementById('select-campo-stats');
+    if (!select) return;
+
+    // Estos son los IDs que corresponden a tus campos en Firebase (según tu código de guardado)
+    const opciones = [
+        { id: 'rolesVida', label: 'ROLES DE VIDA' },
+         { id: 'dinamicasVida', label: 'DINAMICA DE VIDA' },
+        { id: 'estadoCivil', label: 'ESTADO CIVIL' },
+        { id: 'sexo', label: 'SEXO' },
+        { id: 'fechaNacimiento', label: 'AÑO DE NACIMIENTO' }, // Nota: Se procesará por año
+        { id: 'mesCumpleanos', label: 'QUIENES CUMPLEN AÑOS SEGUN LOS 12 MESES' },
+        { id: 'formacionEducativa', label: 'FORMACION EDUCATIVA' },
+        { id: 'zonaSalida', label: 'ZONA DE SALIDA DE TRABAJO' },
+        { id: 'horaEntrada', label: 'HORA DE ENTRADA' },
+        { id: 'horaSalida', label: 'HORA DE SALIDA' },
+        { id: 'rol', label: 'ROL EN LA ALABANZA' },
+        { id: 'red', label: 'RED A LA QUE PERTENECE' },
+        { id: 'facilidadLlegarSemana', label: 'DISPOSICION ENTRE SEMANA' },
+        { id: 'dispSemanaNoche', label: 'DISPOSICION ENTRE SEMANA POR LA NOCHE' },
+        { id: 'dispSabadoManana', label: 'DISP SABADO MAÑANA' },
+        { id: 'dispSabadoTarde', label: 'DISP SABADO TARDE' },
+        { id: 'dispSabadoNoche', label: 'DISP SABADO NOCHE' },
+        { id: 'facilidadLlegarCdd', label: 'FACILIDAD LLEGAR A CDD' },
+        { id: 'asisteGrupo', label: 'ASISTE A UN GRUPO' },
+        { id: 'deporteCual', label: 'DEPORTE QUE PRACTICA' },
+        { id: 'hobbieCual', label: 'HOBBIE' },
+        { id: 'registradoVid', label: 'REGISTRADOS EN VID' },
+        { id: 'asisteDiscipulado', label: 'ASISTEN A DISCIPULADO' },
+        { id: 'graduadoAdl', label: 'GRADUADOS DE ADL' },
+        { id: 'transporte', label: 'TRASNPORTE' },
+        { id: 'tiempoEnsayo', label: 'TIEMPO PARA LLEGAR AL ENSAYO' },
+        { id: 'tiempoDomingo', label: 'TIEMPO DE LLEGAR A CDD EL DOMINGO' },
+        { id: 'tiempoEntreSemana', label: 'TIEMPO QUE HACEN EN LLEGAR A CCD ENTRE SEMANA' }
+    ];
+
+    select.innerHTML = '<option value="">Selecciona una opción...</option>';
+    
+    opciones.forEach(opcion => {
+        const opt = document.createElement('option');
+        opt.value = opcion.id;
+        opt.textContent = opcion.label;
+        select.appendChild(opt);
+    });
+};
+
+
+// Función auxiliar para traer datos (asegúrate de tenerla o adaptarla a tu Firebase)
+async function obtenerDatosFirebase(nombreColeccion) {
+    try {
+        // La sintaxis correcta para SDK v9+ es:
+        const querySnapshot = await getDocs(collection(db, nombreColeccion));
+        
+        // Transformamos los datos a un arreglo simple
+        const datos = [];
+        querySnapshot.forEach((doc) => {
+            datos.push(doc.data());
+        });
+        
+        return datos;
+    } catch (error) {
+        console.error("Error obteniendo documentos: ", error);
+        return [];
+    }
+}
 
 
 window.obtenerIconoPorRol = function(rolDetalle) {
@@ -1435,7 +2231,28 @@ window.onYouTubeIframeAPIReady = function() {
 };
 
 
+// Variable global para almacenar los voluntarios
+window.listaVoluntariosActual = [];
 
+async function cargarVoluntarios() {
+    try {
+        // Asegúrate de que 'db' es tu referencia a firestore
+        const querySnapshot = await getDocs(collection(db, "voluntarios"));
+        
+        window.listaVoluntariosActual = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        
+        console.log("Voluntarios cargados exitosamente:", window.listaVoluntariosActual);
+        
+        // Aquí podrías llamar a una función que renderiza tus tarjetas
+        // Ejemplo: renderizarTarjetas();
+        
+    } catch (error) {
+        console.error("Error al obtener documentos: ", error);
+    }
+}
 
 
 // ELIMINAR
@@ -1475,53 +2292,152 @@ window.eliminarVoluntario = (id) => {
     };
 };
 
-// EDITAR
 window.editarVoluntario = (id) => {
-    // 1. Buscamos el voluntario
     const v = window.listaVoluntariosActual.find(vol => vol.id === id);
-    
-    if (v) {
-        // --- CAMPOS BÁSICOS ---
-        document.getElementById('edit-id').value = id;
-        document.getElementById('nombre').value = v.nombre || '';
-        document.getElementById('nickname').value = v.nickname || '';
-        document.getElementById('telefono').value = v.telefono || '';
-        document.getElementById('fechaNac').value = v.fechaNacimiento || '';
-        document.getElementById('email').value = v.email || '';
-        document.getElementById('direccion').value = v.direccion || '';
+    if (!v) {
+        console.error("No se encontró el voluntario en listaVoluntariosActual");
+        return;
+    }
 
-        // --- ROL E INSTRUMENTO/VOZ ---
-        const selectTipoRol = document.getElementById('tipo-rol');
-        selectTipoRol.value = v.rol || '';
-        
-        // Ejecutamos tu función para mostrar/ocultar el select correcto
-        mostrarDetalleRol(); 
+    console.log("Datos que estamos intentando cargar:", v);
 
-        // Asignamos el valor al select correspondiente
-        if (v.rol === 'instrumento') {
-            document.getElementById('select-instrumento').value = v.detalle || '';
-        } else if (v.rol === 'voz') {
-            document.getElementById('select-voz').value = v.detalle || '';
+    // Función para manejar cualquier tipo de input
+    const set = (id, val, isCheck = false, intentos = 0) => {
+        const el = document.getElementById(id);
+        if (!el) {
+            console.warn("Elemento no encontrado en HTML:", id);
+            return;
         }
 
-        // --- LÍDER (Checkbox y campos) ---
-        const checkboxGrupo = document.getElementById('asiste-grupo');
-        checkboxGrupo.checked = v.asisteGrupo || false;
-        
-        // Ejecutamos tu función para mostrar/ocultar los inputs del líder
-        toggleLider(); 
-        
-        document.getElementById('nombre-lider').value = v.lider || '';
-        document.getElementById('tel-lider').value = v.telLider || '';
+        if (isCheck) {
+            const debeEstarMarcado = !!val;
+            if (el.checked !== debeEstarMarcado) {
+                el.click(); 
+            }
+        } else if (el.tagName === 'SELECT') {
+            // Convertimos el valor a string para comparar bien
+            const valStr = String(val || "").trim().toLowerCase();
+            let encontrada = false;
 
-        // --- CHECKBOXES ADL/BAUTIZADO ---
-        document.getElementById('curso-adl').checked = v.adl || false;
-        document.getElementById('bautizado').checked = v.bautizado || false;
+            for (let option of el.options) {
+                // Comparamos valor y texto de forma flexible (insensible a mayúsculas)
+                const optVal = String(option.value).trim().toLowerCase();
+                const optText = String(option.text).trim().toLowerCase();
+                
+                if (optVal === valStr || optText === valStr) {
+                    el.value = option.value;
+                    encontrada = true;
+                    break;
+                }
+            }
+
+            // Si no se encontró, reintentamos hasta 10 veces
+            if (!encontrada && intentos < 10) {
+                setTimeout(() => set(id, val, isCheck, intentos + 1), 200);
+            } else if (encontrada) {
+                // Disparamos el evento para que tu web registre el cambio
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+            } else {
+                console.warn(`No se encontró coincidencia para "${val}" en el select: ${id}`);
+            }
+        } else {
+            el.value = val || '';
+        }
+    };
+
+    // --- SECCIÓN 1: DATOS PERSONALES ---
+    set('edit-id', id);
+    set('nombre', v.nombre);
+    set('nickname', v.nickname);
+    set('telefono', v.telefono);
+    set('fechaNac', v.fechaNacimiento);
+    set('email', v.email);
+    set('direccion', v.direccion);
+    set('direccion-trabajo', v.direccionTrabajo);
+    set('comida-favorita', v.comidaFavorita);
+    set('contacto-emergencia-nombre', v.contactoEmergenciaNombre);
+    set('contacto-emergencia-parentesco', v.contactoEmergenciaParentesco);
+    set('contacto-emergencia-telefono', v.contactoEmergenciaTelefono);
+    
+    set('sexo', v.sexo);
+    set('estado-civil', v.estadoCivil);
+    set('roles-vida', v.rolesVida);
+    set('dinamicas-vida', v.dinamicasVida);
+    set('formacion-educativa', v.formacionEducativa);
+
+   // --- ROL E INSTRUMENTO CORREGIDO ---
+    set('tipo-rol', v.rol);
+    if(typeof mostrarDetalleRol === 'function') mostrarDetalleRol();
+    
+    // Función de carga con depuración total
+    const cargarInstrumento = (intentos = 0) => {
+        // Se asegura que coincida el tipo de rol con el ID correcto
+        const idTarget = (v.rol || "").toLowerCase().includes("instrumento") ? 'select-instrumento' : 'select-voz';
+        const el = document.getElementById(idTarget);
         
-        // Abrimos el modal
-        document.getElementById('modal-voluntario').classList.remove('hidden');
-    }
+        if (el) {
+            console.log(`Intentando poner valor: "${v.detalle}" en ${idTarget}`);
+            
+            // Asignación directa
+            el.value = v.detalle;
+            
+            // Si no se asignó correctamente (valor no encontrado), buscamos por texto (label)
+            if (el.value !== v.detalle) {
+                for (let option of el.options) {
+                    if (option.text.trim() === String(v.detalle).trim()) {
+                        el.value = option.value;
+                        break;
+                    }
+                }
+            }
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        } else if (intentos < 15) {
+            setTimeout(() => cargarInstrumento(intentos + 1), 200);
+        }
+    };
+    cargarInstrumento();
+
+    // --- SECCIÓN 2: LÍDER Y GRUPO ---
+    set('asiste-grupo', v.asisteGrupo, true);
+    set('graduado-adl', v.graduadoAdl, true);
+    set('lider-grupo', v.liderGrupo, true);
+    set('asiste-discipulado', v.asisteDiscipulado, true);
+    set('lider-discipulado', v.liderDiscipulado, true);
+    set('nombre-lider', v.lider);
+    set('tel-lider', v.telLider);
+    set('red-pertenencia', v.red);
+    set('registrado-vid', v.registradoVid);
+
+    // --- SECCIÓN 3: DISPONIBILIDAD ---
+    set('transporte', v.transporte);
+    set('facilidad-llegar', v.facilidadLlegarSemana);
+    set('hora-entrada', v.horaEntrada);
+    set('hora-salida', v.horaSolida);
+    set('facilidad-llegar-cdd', v.facilidadLlegarCdd);
+    set('tiempo-ensayo', v.tiempoEnsayo);
+    set('tiempo-entre-semana', v.tiempoEntreSemana);
+    set('zona-salida', v.zonaSalida);
+    set('tiempo-domingo', v.tiempoDomingo);
+
+    set('disp-semana-noche', v.dispSemanaNoche, true);
+    set('disp-semana-manana', v.dispSemanaManana, true);
+    set('disp-sabado-manana', v.dispSabadoManana, true);
+    set('disp-sabado-tarde', v.dispSabadoTarde, true);
+    set('disp-sabado-noche', v.dispSabadoNoche, true);
+
+    set('hace-deporte', v.haceDeporte);
+    set('campo-deporte', v.deporteCual);
+    set('tiene-hobbie', v.tieneHobbie);
+    set('campo-hobbie', v.hobbieCual);
+    set('observaciones', v.observaciones);
+
+    document.getElementById('modal-voluntario').classList.remove('hidden');
 };
+
+
+
+
+
 
 window.abrirVisorPdf = (url) => {
     const modal = document.getElementById('modal-visor-pdf');
@@ -1628,9 +2544,30 @@ window.activarEdicion = (setId) => {
 };
 
 window.guardarEdicionSetlist = async (setId) => {
-    // Aquí tomas los valores de los inputs, los guardas en Firebase con updateDoc
-    // y recargas la función cargarSetlistsGuardados()
-    window.showToast("Setlist actualizado correctamente");
+    try {
+        // 1. Buscamos el contenedor y los nuevos valores
+        const setlistDiv = document.querySelector(`[data-id="${setId}"]`);
+        const inputs = setlistDiv.querySelectorAll('input');
+        
+        // Convertimos los inputs en un array de nombres de canciones
+        const nuevasCanciones = Array.from(inputs).map(input => input.value);
+
+        // 2. Actualizamos en Firebase
+        // Nota: Asegúrate de tener importado 'doc' y 'updateDoc' desde "firebase/firestore"
+        const setlistRef = doc(db, "setlists", setId);
+        await updateDoc(setlistRef, {
+            canciones: nuevasCanciones
+        });
+
+        // 3. Refrescamos la UI
+        // Reutilizamos tu función para recargar la lista visualmente
+        await window.cargarSetlistsGuardados();
+        
+        window.showToast("Setlist actualizado correctamente");
+    } catch (error) {
+        console.error("Error al guardar: ", error);
+        window.showToast("Error al guardar los cambios");
+    }
 };
 
 
@@ -1844,6 +2781,236 @@ window.pedirConfirmacion = () => {
     });
 };
 
+
+
+
+
+window.cambiarSeccion = (num) => {
+    // Ocultar todas
+    document.getElementById('seccion-1').classList.add('hidden');
+    document.getElementById('seccion-2').classList.add('hidden');
+    document.getElementById('seccion-3').classList.add('hidden');
+    
+    // Mostrar la seleccionada
+    document.getElementById('seccion-' + num).classList.remove('hidden');
+};
+
+
+
+window.toggleExtra = (selectId, inputId) => {
+        const val = document.getElementById(selectId).value;
+        const el = document.getElementById(inputId);
+        val === 'si' ? el.classList.remove('hidden') : el.classList.add('hidden');
+    };
+
+
+
+function aplicarFiltroLogistica(tipo) {
+    const contenedor = document.getElementById('logistica-resultado');
+    contenedor.innerHTML = ''; // Limpiar resultados previos
+
+    let filtrados = listaVoluntarios;
+
+    if (tipo === 'libres_tarde') {
+        filtrados = listaVoluntarios.filter(v => parseInt(v.horaSalida) <= 15);
+    } else if (tipo === 'no_grupo') {
+        filtrados = listaVoluntarios.filter(v => v.asisteGrupo === false);
+    } else if (tipo === 'musicos') {
+        filtrados = listaVoluntarios.filter(v => v.rol.toLowerCase().includes('musico'));
+    }
+
+    // Renderizado de resultados
+    filtrados.forEach(v => {
+        contenedor.innerHTML += `
+            <div class="p-4 bg-[#161616] border border-gray-800 rounded-lg">
+                <p class="text-gold font-bold">${v.nombre}</p>
+                <p class="text-gray-500 text-xs">${v.rol} • Salida: ${v.horaSalida}</p>
+            </div>
+        `;
+    });
+}
+
+
+
+window.ejecutarLogicaDeGuardado = async () => {
+    const btn = document.getElementById('btn-guardar-voluntario');
+    const idInput = document.getElementById('edit-cancion-id'); // <--- El ID correcto
+    const id = idInput ? idInput.value : ''; // Aquí está la clave: ¿hay ID o no?
+
+    // 1. Recopilación de datos (completa todos tus campos aquí)
+    const datos = {
+        nombre: document.getElementById('nombre')?.value || '',
+        nickname: document.getElementById('nickname')?.value || '',
+        telefono: document.getElementById('telefono')?.value || '',
+        // ... (agrega aquí todos los demás campos que tenías en tu script largo)
+        fechaActualizacion: new Date().toISOString()
+    };
+
+    if (!datos.nombre) {
+        window.showToast("El nombre es obligatorio");
+        return;
+    }
+
+    try {
+        btn.disabled = true;
+        btn.innerText = "Guardando...";
+
+        if (id && id.trim() !== "") {
+            // --- ACTUALIZAR: El registro existe, lo modificamos ---
+            const docRef = window.doc(window.db, "voluntarios", id);
+            await window.updateDoc(docRef, datos);
+            window.showToast("¡Datos actualizados correctamente!");
+        } else {
+            // --- CREAR: No hay ID, es uno nuevo ---
+            await window.addDoc(window.collection(window.db, "voluntarios"), datos);
+            window.showToast("¡Datos guardados correctamente!");
+        }
+        
+        window.cerrarFormulario();
+        // IMPORTANTE: Limpiar el ID después de guardar para que no se quede pegado
+        if (idInput) idInput.value = ''; 
+        
+    } catch (error) {
+        console.error("Error al guardar:", error);
+        window.showToast("Error al guardar en la base de datos");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Guardar";
+    }
+};
+
+
+
+window.abrirModal = function() {
+        const modal = document.getElementById('modal-asistencia');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    };
+
+    window.cerrarModal = function() {
+        const modal = document.getElementById('modal-asistencia');
+        if (modal) {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+    };
+
+    // --- 2. GENERACIÓN DE QR ---
+    window.generarQR = async function() {
+    const contenedor = document.getElementById("qrcode");
+    if (!contenedor) return;
+    
+    contenedor.innerHTML = ""; 
+    const token = Math.random().toString(36).substring(7); 
+    const hoy = new Date().toISOString().split('T')[0];
+    
+    try {
+        // Usamos las funciones desde window tal como las expusiste
+        const docRef = window.doc(window.db, "tokens", "diario");
+        await window.setDoc(docRef, {
+            token: token,
+            fecha: hoy
+        });
+
+        const url = `${window.location.origin}/voluntarios.html?fecha=${hoy}&token=${token}`;
+        new QRCode(contenedor, { 
+            text: url, 
+            width: 200, 
+            height: 200,
+            colorDark: "#ffffff",
+            colorLight: "#050505"
+        });
+        
+        console.log("Token guardado y QR generado.");
+    } catch (err) {
+        console.error("Error al guardar token:", err);
+        alert("No se pudo generar el QR. Revisa la consola.");
+    }
+};
+
+    // --- 3. LECTURA DE ASISTENCIA (TIEMPO REAL) ---
+  window.cargarAsistenciaHoy = async function() {
+    const tablaCuerpo = document.getElementById("tabla-asistencia-body");
+    if (!tablaCuerpo) {
+        console.error("No se encontró el elemento tabla-asistencia-body");
+        return;
+    }
+    
+    tablaCuerpo.innerHTML = "<tr><td colspan='3' class='p-3 text-center text-gray-500'>Cargando asistencias...</td></tr>";
+
+    const hoy = new Date().toISOString().split('T')[0];
+    
+    // USAMOS WINDOW PARA ACCEDER A LAS FUNCIONES DEL MÓDULO
+    // Creamos la referencia a la colección
+    const asistenciaRef = window.collection(window.db, "asistencia");
+    
+    // Creamos la consulta
+    const q = window.query(asistenciaRef, window.where("fecha", "==", hoy));
+
+    // Escuchamos los cambios en tiempo real
+    window.onSnapshot(q, (snapshot) => {
+        tablaCuerpo.innerHTML = "";
+        
+        if (snapshot.empty) {
+            tablaCuerpo.innerHTML = "<tr><td colspan='3' class='p-3 text-center text-gray-500'>No hay registros hoy</td></tr>";
+            return;
+        }
+
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            // Inyectamos con estilo PRO
+            tablaCuerpo.insertAdjacentHTML('beforeend', `
+                <tr class="hover:bg-white/5 transition-colors border-b border-white/5">
+                    <td class="p-4 text-white font-medium">${data.nombreVoluntario || 'Voluntario'}</td>
+                    <td class="p-4 text-gray-400">${data.hora || '--:--'}</td>
+                    <td class="p-4 text-right">
+                        <span class="px-2 py-1 bg-green-500/10 text-green-400 rounded text-xs uppercase font-bold">Presente</span>
+                    </td>
+                </tr>
+            `);
+        });
+    });
+};
+
+    // --- 4. CONFIRMAR REGISTRO MANUAL ---
+   window.confirmarRegistro = async function() { // Añadimos 'async' para poder usar 'await'
+    const inputNombre = document.getElementById('input-nombre');
+    const nombre = inputNombre ? inputNombre.value : "Manual";
+    const hoy = new Date().toISOString().split('T')[0];
+    const hora = new Date().toLocaleTimeString();
+
+    if (typeof db !== 'undefined') {
+        try {
+            // USAMOS LA SINTAXIS MODULAR V9:
+            await addDoc(collection(db, "asistencia"), {
+                nombreVoluntario: nombre,
+                fecha: hoy,
+                hora: hora,
+                tipo: "manual"
+            });
+            
+            window.cerrarModal();
+            console.log("Registro guardado con éxito");
+        } catch (err) {
+            console.error("Error al guardar en Firebase:", err);
+            alert("Hubo un error al registrar: " + err.message);
+        }
+    } else {
+        console.error("La base de datos (db) no está definida.");
+    }
+};
+
+
+
+
+
+window.cargarAsistenciaHoy = cargarAsistenciaHoy;
+window.generarQR = generarQR;
+window.abrirModal = abrirModal;
+window.cerrarModal = cerrarModal;
+window.confirmarRegistro = confirmarRegistro;
 </script>
 
 
@@ -1913,6 +3080,9 @@ window.pedirConfirmacion = () => {
         </form>
     </div>
 </div>
+
+
+
 
 </body>
 </html>
