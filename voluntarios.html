@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Deepartment">
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <link rel="apple-touch-icon" href="./icon.png">
 
@@ -128,20 +129,28 @@
 </div>
 </div>
 
-<div id="tab-asistencia" class="hidden p-6 bg-premium rounded-2xl border border-gray-800" style="display: none !important;">
+<div id="tab-asistencia" class="hidden p-6 bg-premium rounded-2xl border border-gray-800">
+    
+    <div id="reader-container" class="hidden">
+        <div id="reader" style="width: 100%;"></div>
+        <button onclick="window.cerrarEscaneo()" class="w-full mt-4 text-xs text-red-400 hover:text-white transition">
+            Cancelar escaneo
+        </button>
+    </div>
+
     <div id="mensaje-no-qr" class="text-center p-6">
         <p class="text-gray-500 text-sm uppercase tracking-widest">No hay un código QR activo.</p>
-        <p class="text-gray-600 text-[10px] mt-2">Por favor, escanea un código QR válido para registrar tu asistencia.</p>
+        
+        <button onclick="window.iniciarEscaneoUI()" 
+                class="mt-6 w-full bg-gold text-black font-bold py-3 rounded-lg hover:bg-white transition-all transform active:scale-95">
+            Escanear Código QR
+        </button>
     </div>
 
     <div id="formulario-asistencia" class="hidden w-full max-w-sm mx-auto">
         <h1 class="text-white text-xl font-bold mb-6 text-center">Registro de Asistencia</h1>
-        
-        <input type="text" id="nombre-voluntario" readonly 
-               class="w-full p-3 rounded-lg bg-[#1a1a1a] text-gray-400 border border-gray-700 outline-none mb-4 cursor-not-allowed">
-        
-        <button onclick="marcarAsistencia()" 
-                class="w-full bg-white hover:bg-[#ffd95a] text-black font-bold py-3 rounded-lg transition-all transform active:scale-95">
+        <input type="text" id="nombre-voluntario" readonly class="w-full p-3 rounded-lg bg-[#1a1a1a] text-gray-400 border border-gray-700 mb-4 cursor-not-allowed">
+        <button onclick="marcarAsistencia()" class="w-full bg-white hover:bg-[#ffd95a] text-black font-bold py-3 rounded-lg transition-all active:scale-95">
             Registrar Asistencia
         </button>
     </div>
@@ -353,55 +362,69 @@ window.mostrarTab = async (tabName) => {
 
         // 3. Lógica específica para el tab de asistencia
         if (tabName === 'asistencia') {
-    const params = new URLSearchParams(window.location.search);
-    const tokenURL = params.get('token');
-    const msgNoQr = document.getElementById('mensaje-no-qr');
-    const formAsistencia = document.getElementById('formulario-asistencia');
-    
-    msgNoQr.innerText = "Validando acceso...";
-    msgNoQr.classList.remove('hidden');
-    formAsistencia.classList.add('hidden');
+            const params = new URLSearchParams(window.location.search);
+            const tokenURL = params.get('token');
+            const fechaQR = params.get('fecha');
+            
+            const msgNoQr = document.getElementById('mensaje-no-qr');
+            const formAsistencia = document.getElementById('formulario-asistencia');
+            const readerContainer = document.getElementById('reader-container');
 
-    if (tokenURL) {
-        try {
-            // 1. Validar el token del QR
-            const tokenRef = window.doc(window.db, "tokens", "diario");
-            const snap = await window.getDoc(tokenRef);
-
-            if (snap.exists() && snap.data().token === tokenURL) {
-                
-                // 2. NUEVA VALIDACIÓN: ¿Ya marcó asistencia hoy?
-                // Aquí deberías buscar en la colección 'asistencia' si ya existe el registro
-                // NOTA: Esto requiere que tengas un identificador único (como el email del usuario logueado)
-                const usuarioLogueado = localStorage.getItem('deep_user_email'); // O como identifiques a tu usuario
-                
-                const asistRef = window.collection(window.db, "asistencia");
-                const q = window.query(asistRef, 
-                    window.where("email", "==", usuarioLogueado), 
-                    window.where("fecha", "==", params.get('fecha'))
-                );
-                const querySnapshot = await window.getDocs(q);
-
-                if (!querySnapshot.empty) {
-                    // YA MARCÓ ASISTENCIA
-                    msgNoQr.innerText = "¡Ya marcaste tu asistencia hoy! Todo está en orden.";
+            // Caso A: El usuario llegó mediante un QR escaneado (tiene token)
+            if (tokenURL) {
+                if (msgNoQr) {
+                    msgNoQr.innerText = "Validando acceso...";
                     msgNoQr.classList.remove('hidden');
-                } else {
-                    // TODO OK, PUEDE MARCAR
-                    msgNoQr.classList.add('hidden');
-                    formAsistencia.classList.remove('hidden');
                 }
+                if (formAsistencia) formAsistencia.classList.add('hidden');
+                if (readerContainer) readerContainer.classList.add('hidden');
 
-            } else {
-                msgNoQr.innerText = "El código QR no es válido o expiró.";
+                try {
+                    const tokenRef = window.doc(window.db, "tokens", "diario");
+                    const snap = await window.getDoc(tokenRef);
+
+                    if (snap.exists() && snap.data().token === tokenURL) {
+                        const usuarioLogueado = localStorage.getItem('deep_user_email');
+                        const asistRef = window.collection(window.db, "asistencia");
+                        const q = window.query(asistRef, 
+                            window.where("email", "==", usuarioLogueado), 
+                            window.where("fecha", "==", fechaQR)
+                        );
+                        
+                        const querySnapshot = await window.getDocs(q);
+
+                        if (!querySnapshot.empty) {
+                            msgNoQr.innerText = "¡Ya marcaste tu asistencia hoy! Todo está en orden.";
+                            msgNoQr.classList.remove('hidden');
+                        } else {
+                            msgNoQr.classList.add('hidden');
+                            formAsistencia.classList.remove('hidden');
+                        }
+                    } else {
+                        msgNoQr.innerText = "El código QR no es válido o expiró.";
+                    }
+                } catch (e) {
+                    msgNoQr.innerText = "Error de conexión. Intenta de nuevo.";
+                }
+            } 
+            // Caso B: El usuario entró a la pestaña manualmente (sin token)
+            else {
+                // Aseguramos que el botón de escanear se vea y el formulario esté oculto
+                if (msgNoQr) {
+                    msgNoQr.classList.remove('hidden');
+                    // Aquí restauramos el texto original si no estaba escaneando
+                    if (!readerContainer.classList.contains('hidden')) {
+                         msgNoQr.innerText = "Escaneando...";
+                    } else {
+                         msgNoQr.innerHTML = `
+                            <p class="text-gray-500 text-sm uppercase tracking-widest">No hay un código QR activo.</p>
+                            <button onclick="window.iniciarEscaneoUI()" class="mt-6 w-full bg-gold text-black font-bold py-3 rounded-lg hover:bg-white transition-all transform active:scale-95">Escanear Código QR</button>
+                         `;
+                    }
+                }
+                if (formAsistencia) formAsistencia.classList.add('hidden');
             }
-        } catch (e) {
-            msgNoQr.innerText = "Error de conexión. Intenta de nuevo.";
         }
-    } else {
-        msgNoQr.innerText = "No hay un código QR activo.";
-    }
-}
     }
 
     // 4. Actualizar botones del menú
@@ -727,6 +750,56 @@ window.cargarEnsayos = async function() {
     }
 };
 
+
+
+// Variable global para controlar la cámara
+let html5QrCode;
+
+// ESTA ES LA FUNCIÓN QUE TU BOTÓN LLAMA
+window.iniciarEscaneoUI = () => {
+    // 1. Ocultar el mensaje, mostrar el contenedor de la cámara
+    const msg = document.getElementById('mensaje-no-qr');
+    const readerContainer = document.getElementById('reader-container');
+    
+    if (msg) msg.classList.add('hidden');
+    if (readerContainer) readerContainer.classList.remove('hidden');
+
+    // 2. Iniciar el lector
+    html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+        { facingMode: "environment" }, 
+        { fps: 10, qrbox: 250 },
+        (decodedText) => {
+            // El usuario escaneó correctamente
+            try {
+                const url = new URL(decodedText);
+                const token = url.searchParams.get("token");
+                
+                if (token) {
+                    // Cerramos cámara y recargamos la app con el token
+                    cerrarEscaneo();
+                    window.location.search = `?token=${token}`; 
+                }
+            } catch (e) {
+                alert("El código QR no parece ser un enlace válido.");
+            }
+        },
+        (errorMessage) => { /* Silencioso mientras busca */ }
+    ).catch(err => {
+        alert("No se pudo acceder a la cámara: " + err);
+        cerrarEscaneo();
+    });
+};
+
+// ESTA FUNCIÓN CIERRA LA CÁMARA
+window.cerrarEscaneo = () => {
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+            document.getElementById('reader-container').classList.add('hidden');
+            document.getElementById('mensaje-no-qr').classList.remove('hidden');
+        }).catch(err => console.log(err));
+    }
+};
 
 </script>
 
