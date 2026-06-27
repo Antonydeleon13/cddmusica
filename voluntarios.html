@@ -334,26 +334,49 @@ async function cargarIntegrantesTeam(equipoNombre) {
 window.mostrarTab = (tabName) => {
     const tabs = ['card-inner', 'tab-ensayos', 'tab-setlist', 'tab-asistencia'];
     
+    // 1. Ocultar todo
     tabs.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-            el.classList.add('hidden'); // Ocultar
-            el.style.display = 'none';  // Ocultar forzado
+            el.classList.add('hidden');
+            el.style.display = 'none';
         }
     });
 
-    // CORRECCIÓN AQUÍ: Si pides 'perfil', busca 'card-inner'
+    // 2. Mostrar el tab solicitado
     const idReal = (tabName === 'perfil') ? 'card-inner' : 'tab-' + tabName;
     const tabElement = document.getElementById(idReal);
     
     if (tabElement) {
         tabElement.classList.remove('hidden');
-        tabElement.style.display = 'block'; // Mostrar
+        tabElement.style.display = 'block';
+
+        // --- 3. LÓGICA DE ASISTENCIA: Aquí está el truco ---
+        if (tabName === 'asistencia') {
+            const params = new URLSearchParams(window.location.search);
+            const msgNoQr = document.getElementById('mensaje-no-qr');
+            const formAsistencia = document.getElementById('formulario-asistencia');
+            
+            if (params.get('token')) {
+                // Hay QR: ocultar mensaje, mostrar formulario
+                msgNoQr.classList.add('hidden');
+                formAsistencia.classList.remove('hidden');
+            } else {
+                // No hay QR: mostrar mensaje, ocultar formulario
+                msgNoQr.classList.remove('hidden');
+                formAsistencia.classList.add('hidden');
+            }
+        }
     }
 
-    // Reset botones
+    // 4. Resetear botones del menú (aquí puedes añadir la lógica para poner el estilo "activo")
     document.querySelectorAll('#tabs-nav button').forEach(btn => {
+        // Ponemos el estilo base gris a todos
         btn.className = "text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition";
+        // Si el botón corresponde al tab actual, le pones el color gold
+        if (btn.innerText.toLowerCase() === tabName) {
+             btn.className = "text-[10px] uppercase tracking-widest text-gold border-b border-gold pb-1";
+        }
     });
 };
 
