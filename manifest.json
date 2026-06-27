@@ -1,0 +1,16 @@
+{
+  "name": "Deepartment Voluntarios",
+  "short_name": "DeepVol",
+  "start_url": "/cddmusica/voluntarios.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "scope": "/cddmusica/",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
