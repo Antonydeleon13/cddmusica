@@ -128,8 +128,13 @@
 </div>
 </div>
 
-<div id="tab-asistencia" class="hidden p-6 bg-premium rounded-2xl border border-gray-800">
-    <div class="w-full max-w-sm mx-auto">
+<div id="tab-asistencia" class="hidden p-6 bg-premium rounded-2xl border border-gray-800" style="display: none !important;">
+    <div id="mensaje-no-qr" class="text-center p-6">
+        <p class="text-gray-500 text-sm uppercase tracking-widest">No hay un código QR activo.</p>
+        <p class="text-gray-600 text-[10px] mt-2">Por favor, escanea un código QR válido para registrar tu asistencia.</p>
+    </div>
+
+    <div id="formulario-asistencia" class="hidden w-full max-w-sm mx-auto">
         <h1 class="text-white text-xl font-bold mb-6 text-center">Registro de Asistencia</h1>
         
         <input type="text" id="nombre-voluntario" readonly 
@@ -327,25 +332,29 @@ async function cargarIntegrantesTeam(equipoNombre) {
 }
 
 window.mostrarTab = (tabName) => {
-    // 1. Ocultar todos los tabs posibles en esta vista
     const tabs = ['card-inner', 'tab-ensayos', 'tab-setlist', 'tab-asistencia'];
+    
     tabs.forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.classList.add('hidden');
+        if (el) {
+            el.classList.add('hidden'); // Ocultar
+            el.style.display = 'none';  // Ocultar forzado
+        }
     });
 
-    // 2. Resetear botones
-    document.querySelectorAll('#tabs-nav button').forEach(btn => {
-        btn.className = "text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition";
-    });
-
-    // 3. Mostrar el formulario de registro directamente
-    // (O el tab que el usuario necesite ver)
-    const tabElement = document.getElementById('tab-' + tabName) || document.getElementById(tabName);
+    // CORRECCIÓN AQUÍ: Si pides 'perfil', busca 'card-inner'
+    const idReal = (tabName === 'perfil') ? 'card-inner' : 'tab-' + tabName;
+    const tabElement = document.getElementById(idReal);
     
     if (tabElement) {
         tabElement.classList.remove('hidden');
+        tabElement.style.display = 'block'; // Mostrar
     }
+
+    // Reset botones
+    document.querySelectorAll('#tabs-nav button').forEach(btn => {
+        btn.className = "text-[10px] uppercase tracking-widest text-gray-500 hover:text-white transition";
+    });
 };
 
 
@@ -598,14 +607,20 @@ window.cargarEnsayos = async function() {
 
 
 
-    window.addEventListener('load', () => {
-        // Un pequeño retraso para asegurar que Firebase se haya inicializado
-        setTimeout(() => {
-            if (typeof window.cargarEnsayos === 'function') {
-                window.cargarEnsayos();
-            }
-        }, 500); 
-    });
+   window.addEventListener('load', () => {
+    // Solo cargamos los datos. No forzamos visibilidad aquí.
+    setTimeout(() => {
+        if (typeof window.cargarEnsayos === 'function') window.cargarEnsayos();
+    }, 500);
+
+    // Si viene QR, mostramos asistencia, si no, dejamos que el HTML muestre el Perfil
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('token')) {
+        window.mostrarTab('asistencia');
+    } else {
+        window.mostrarTab('perfil'); // Esto mostrará tu 'card-inner'
+    }
+});
 
 
 
