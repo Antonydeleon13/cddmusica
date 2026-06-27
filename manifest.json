@@ -3,6 +3,7 @@
   "short_name": "Deepartment",
   "start_url": "/cddmusica/voluntarios.html",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "background_color": "#050505",
   "theme_color": "#050505",
   "scope": "/cddmusica/",
