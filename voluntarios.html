@@ -128,19 +128,19 @@
 </div>
 </div>
 
-<div id="tab-asistencia" class="p-6 min-h-screen flex items-center justify-center">
-        <div class="bg-premium w-full max-w-sm p-6 rounded-2xl shadow-2xl border border-white/10 mx-auto">
-            <h1 class="text-white text-xl font-bold mb-6 text-center">Registro de Asistencia</h1>
-            
-            <input type="text" id="nombre-voluntario" readonly 
-       class="w-full p-3 rounded-lg bg-[#1a1a1a] text-gray-400 border border-gray-700 outline-none mb-4 cursor-not-allowed">
-            
-            <button onclick="marcarAsistencia()" 
-                    class="w-full bg-white hover:bg-[#ffd95a] text-black font-bold py-3 rounded-lg transition-all transform active:scale-95">
-                Registrar Asistencia
-            </button>
-        </div>
+<div id="tab-asistencia" class="hidden p-6 bg-premium rounded-2xl border border-gray-800">
+    <div class="w-full max-w-sm mx-auto">
+        <h1 class="text-white text-xl font-bold mb-6 text-center">Registro de Asistencia</h1>
+        
+        <input type="text" id="nombre-voluntario" readonly 
+               class="w-full p-3 rounded-lg bg-[#1a1a1a] text-gray-400 border border-gray-700 outline-none mb-4 cursor-not-allowed">
+        
+        <button onclick="marcarAsistencia()" 
+                class="w-full bg-white hover:bg-[#ffd95a] text-black font-bold py-3 rounded-lg transition-all transform active:scale-95">
+            Registrar Asistencia
+        </button>
     </div>
+</div>
 
 
     </div> <!-- card-inner -->
