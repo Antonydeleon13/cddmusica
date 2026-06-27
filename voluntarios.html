@@ -149,36 +149,46 @@
 
    <script type="module">
    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs, getDoc, doc, updateDoc, terminate, clearIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+    getFirestore, 
+    collection, 
+    query, 
+    where, 
+    getDocs, 
+    getDoc, 
+    doc, 
+    updateDoc, 
+    addDoc,      // <--- IMPORTANTE: Agregado aquí
+    terminate, 
+    clearIndexedDbPersistence 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  
+const firebaseConfig = { 
+    apiKey: "AIzaSyBMp-j9Mk6VZ68SO8dUzgZgfXodIM9Ibys", 
+    authDomain: "cddmusica-d8f92.firebaseapp.com", 
+    projectId: "cddmusica-d8f92", 
+    storageBucket: "cddmusica-d8f92.firebasestorage.app", 
+    messagingSenderId: "490870638033", 
+    appId: "1:490870638033:web:af7075a3da6be99ca1ccf" 
+};
 
-    const firebaseConfig = { 
-        apiKey: "AIzaSyBMp-j9Mk6VZ68SO8dUzgZgfXodIM9Ibys", 
-        authDomain: "cddmusica-d8f92.firebaseapp.com", 
-        projectId: "cddmusica-d8f92", 
-        storageBucket: "cddmusica-d8f92.firebasestorage.app", 
-        messagingSenderId: "490870638033", 
-        appId: "1:490870638033:web:af7075a3da6be99ca1ccf" 
-    };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+// Asignación de funciones al objeto window para acceso global
+window.db = db;
+window.collection = collection;
+window.query = query;
+window.where = where;
+window.getDocs = getDocs;
+window.getDoc = getDoc;
+window.doc = doc;
+window.updateDoc = updateDoc;
+window.addDoc = addDoc; // <--- IMPORTANTE: Asignado aquí para que marcarAsistencia lo encuentre
 
+console.log("Firebase inicializado y funciones globales configuradas.");
 
-     window.db = db;
-    window.collection = collection;
-    window.query = query;
-    window.where = where;
-    window.getDocs = getDocs;
-    window.getDoc = getDoc;
-    window.doc = doc;
-    window.updateDoc = updateDoc;
-
-    console.log("Firebase inicializado y funciones globales configuradas.");
-
-    
-    let currentUser = null;
+let currentUser = null;
 
     // 1. Agrega esta función fuera de loginVoluntario (puedes ponerla antes)
 window.obtenerIconoPorRol = (rolDetalle) => {
