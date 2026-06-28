@@ -765,55 +765,64 @@ let html5QrCode;
 
 // ESTA ES LA FUNCIÓN QUE TU BOTÓN LLAMA
 window.iniciarEscaneoUI = () => {
+    // 1. Crear un div de consola en pantalla si no existe
+    let debugDiv = document.getElementById('debug-log');
+    if (!debugDiv) {
+        debugDiv = document.createElement('div');
+        debugDiv.id = 'debug-log';
+        debugDiv.style = 'position:fixed; bottom:0; left:0; width:100%; height:150px; background:black; color:lime; font-size:10px; overflow:scroll; z-index:9999;';
+        document.body.appendChild(debugDiv);
+    }
+    
+    const log = (msg) => {
+        debugDiv.innerHTML += msg + "<br>";
+        console.log(msg);
+    };
+
     const readerContainer = document.getElementById('reader-container');
     const msg = document.getElementById('mensaje-no-qr');
-    
     msg.classList.add('hidden');
     readerContainer.classList.remove('hidden');
 
-    // CONFIGURACIÓN "A PRUEBA DE MÓVIL"
-    const config = {
-        fps: 15,
-        // Eliminamos restricciones de tamaño fijas, dejamos que la librería detecte el QR donde sea
-        qrbox: { width: 300, height: 300 }, 
-        aspectRatio: 1.0
-    };
+    log("Iniciando cámara...");
 
     html5QrCode = new Html5Qrcode("reader");
 
-    // FORZAMOS EL USO DE CÁMARA TRASERA Y MEJORAMOS LA LECTURA
     html5QrCode.start(
-        { facingMode: { exact: "environment" } }, 
-        config,
-        async (decodedText) => {
-            // DETENEMOS INMEDIATAMENTE AL DETECTAR
-            await html5QrCode.stop();
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        (decodedText) => {
+            log("¡QR Detectado! Texto: " + decodedText);
             
-            alert("¡QR Detectado! Proceso iniciado.");
+            // Forzamos el alert para confirmar que entró aquí
+            alert("QR detectado, procesando...");
             
-            // Lógica de navegación
-            let token = decodedText.includes("?") ? new URL(decodedText).searchParams.get("token") : decodedText;
-            
-            const nuevaUrl = new URL(window.location.href);
-            nuevaUrl.searchParams.set("token", token);
-            window.history.pushState({}, '', nuevaUrl);
-            
-            await window.mostrarTab('asistencia');
+            // Resto de tu lógica...
+            procesarToken(decodedText);
         },
         (errorMessage) => {
-            // Aquí no hacemos nada, es normal que falle mientras busca
+            // Esto se dispara muchas veces, no lo logueamos para no saturar
         }
     ).catch(err => {
-        // SI FALLA AL INICIAR, INTENTAMOS CON LA CÁMARA GENÉRICA (Por si el móvil no tiene "environment")
-        console.error("Error exacto:", err);
-        html5QrCode.start(
-            { facingMode: "user" }, 
-            config,
-            (decodedText) => { /* Misma lógica de éxito */ },
-            (err) => {}
-        ).catch(e => alert("Error total de cámara: " + e));
+        log("Error crítico: " + err);
+        alert("Error: " + err);
     });
 };
+
+// Función auxiliar para centralizar
+async function procesarToken(decodedText) {
+    console.log("Procesando token...");
+    try {
+        let token = decodedText.includes("?") ? new URL(decodedText).searchParams.get("token") : decodedText;
+        const nuevaUrl = new URL(window.location.href);
+        nuevaUrl.searchParams.set("token", token);
+        window.history.pushState({}, '', nuevaUrl);
+        await window.mostrarTab('asistencia');
+        alert("Navegación disparada");
+    } catch(e) {
+        alert("Error en procesarToken: " + e);
+    }
+}
 
 // ESTA FUNCIÓN CIERRA LA CÁMARA
 window.cerrarEscaneo = () => {
