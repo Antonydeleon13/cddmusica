@@ -757,37 +757,44 @@ let html5QrCode;
 
 // ESTA ES LA FUNCIÓN QUE TU BOTÓN LLAMA
 window.iniciarEscaneoUI = () => {
-    // 1. Ocultar el mensaje, mostrar el contenedor de la cámara
     const msg = document.getElementById('mensaje-no-qr');
     const readerContainer = document.getElementById('reader-container');
     
     if (msg) msg.classList.add('hidden');
     if (readerContainer) readerContainer.classList.remove('hidden');
 
-    // 2. Iniciar el lector
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start(
         { facingMode: "environment" }, 
         { fps: 10, qrbox: 250 },
         (decodedText) => {
-            // El usuario escaneó correctamente
-            try {
+            console.log("QR Detectado:", decodedText);
+            
+            // Forzamos la lógica: Buscamos si el texto es una URL completa o solo tiene los parámetros
+            let token = "";
+            
+            if (decodedText.includes("?")) {
                 const url = new URL(decodedText);
-                const token = url.searchParams.get("token");
-                
-                if (token) {
-                    // Cerramos cámara y recargamos la app con el token
-                    cerrarEscaneo();
-                    window.location.search = `?token=${token}`; 
-                }
-            } catch (e) {
-                alert("El código QR no parece ser un enlace válido.");
+                token = url.searchParams.get("token");
+            } else {
+                // Si el QR solo tiene el token como texto plano
+                token = decodedText;
+            }
+            
+            if (token) {
+                // DETENER CÁMARA ANTES DE NAVEGAR
+                html5QrCode.stop().then(() => {
+                    // AQUÍ ESTÁ EL CAMBIO: Usamos replace para asegurar el recargo
+                    window.location.href = window.location.pathname + `?token=${token}`;
+                }).catch(err => console.log(err));
+            } else {
+                alert("QR detectado, pero no contiene un token válido.");
             }
         },
-        (errorMessage) => { /* Silencioso mientras busca */ }
+        (errorMessage) => { /* Silencioso */ }
     ).catch(err => {
-        alert("No se pudo acceder a la cámara: " + err);
-        cerrarEscaneo();
+        alert("Error de cámara: " + err);
+        window.cerrarEscaneo();
     });
 };
 
