@@ -17,6 +17,7 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <style>
     /* Fondo premium con profundidad */
     body { 
@@ -137,6 +138,10 @@
 
   <div id="modal-voluntario" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
     <div id="form-content" class="bg-[#0a0a0a] border border-gold/30 p-8 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+
+        <!-- ID DEL VOLUNTARIO QUE SE ESTÁ EDITANDO -->
+        <input type="hidden" id="edit-id">
+
         <div class="mb-8 text-center">
             <h2 class="text-gold text-xl font-bold uppercase tracking-[0.2em]">Nuevo Voluntario</h2>
             <div class="h-px w-16 bg-gold/50 mx-auto mt-4"></div>
@@ -1492,7 +1497,7 @@ if (btnVoluntario) {
                 tieneHobbie: document.getElementById('tiene-hobbie')?.value || '',
                 hobbieCual: document.getElementById('campo-hobbie')?.value || '',
                 observaciones: document.getElementById('observaciones')?.value || '',
-                fechaRegistro: id ? undefined : new Date().toISOString()
+                fechaActualizacion: new Date().toISOString()
             };
 
             if (!datos.nombre) {
@@ -1501,6 +1506,9 @@ if (btnVoluntario) {
                 btnVoluntario.innerText = "Guardar";
                 return;
             }
+            if (!id) {
+             datos.fechaRegistro = new Date().toISOString();
+                }
 
             if (id && id.trim() !== "") {
                 await window.updateDoc(window.doc(window.db, "voluntarios", id), datos);
@@ -1514,6 +1522,10 @@ if (btnVoluntario) {
             window.cerrarFormulario();
             document.getElementById('form-voluntario')?.reset();
             window.cambiarVista('miembros');
+
+            if (idInput) {
+    idInput.value = '';
+}
         } catch (err) {
             console.error("Error:", err);
             window.showToast("Error al procesar: " + err.message);
@@ -1535,29 +1547,54 @@ window.cerrarFormulario = function() {
     }
 };
 
-window.limpiarFormulario = function() {
-    // 1. Resetear formulario si existe
-    const form = document.getElementById('modal-voluntario-form');
-    if (form) form.reset();
-    
-    // 2. Limpiar inputs manuales (excluyendo campos ocultos de ID)
-    const inputs = document.querySelectorAll('#modal-voluntario input, #modal-voluntario select, #modal-voluntario textarea');
-    inputs.forEach(input => {
-        if(input.type !== 'hidden') {
-            input.value = '';
+window.limpiarFormulario = function () {
+
+    // Limpiar el ID de edición
+    document.getElementById('edit-id').value = '';
+
+    // Inputs y textarea
+    document.querySelectorAll('#modal-voluntario input, #modal-voluntario textarea').forEach(el => {
+
+        if (el.type === 'hidden') return;
+
+        if (el.type === 'checkbox') {
+            el.checked = false;
+        } else {
+            el.value = '';
         }
     });
-    
-    // 3. Resetear selects de Rol/Voz
+
+    // Selects
+    document.querySelectorAll('#modal-voluntario select').forEach(select => {
+        select.selectedIndex = 0;
+    });
+
+    // Ocultar selects dinámicos
     document.getElementById('select-instrumento').classList.add('hidden');
     document.getElementById('select-voz').classList.add('hidden');
-    
-    // 4. Limpiar clases visuales de checkboxes
-    const visuals = document.querySelectorAll('.checkbox-visual');
-    visuals.forEach(v => v.classList.remove('bg-gold', 'border-gold'));
-    
-    console.log("Formulario limpiado");
+
+    // Limpiar los selects internos
+    document.getElementById('select-instrumento').selectedIndex = 0;
+    document.getElementById('select-voz').selectedIndex = 0;
+
+    // Ocultar campos extras
+    const deporte = document.getElementById('campo-deporte');
+    const hobbie = document.getElementById('campo-hobbie');
+
+    if (deporte) {
+        deporte.value = '';
+        deporte.classList.add('hidden');
+    }
+
+    if (hobbie) {
+        hobbie.value = '';
+        hobbie.classList.add('hidden');
+    }
+
+    console.log("Formulario completamente limpio");
 };
+
+
 
 window.mostrarFormulario = function() { 
     limpiarFormulario(); // Limpiar antes de abrir para evitar datos basura
@@ -1642,6 +1679,17 @@ window.cambiarVista = async function(vista) {
             contenedor.innerHTML += `<p class="text-gray-500 text-center mt-10 italic">No hay voluntarios registrados.</p>`;
             return;
         }
+
+        const totalVoluntarios = voluntarios.length;
+
+contenedor.innerHTML += `
+<div class="mb-4 flex justify-end">
+    <span class="text-sm text-gray-400 uppercase tracking-widest">
+        Total de voluntarios:
+        <span class="text-gold font-bold">${totalVoluntarios}</span>
+    </span>
+</div>
+`;
 
         let html = '<div class="space-y-4">';
         voluntarios.forEach((v, index) => {
@@ -1845,10 +1893,13 @@ else if (vista === 'ensayos') {
                     </select>
                 </div>
 
-                <div class="w-64 h-64 mt-8 mx-auto">
-                    <canvas id="chartDona"></canvas>
-                </div>
-                
+                <div class="flex items-center justify-between gap-8 mt-8">
+
+    <div class="w-[520px] h-[520px]">
+        <canvas id="chartDona"></canvas>
+    </div>
+
+</div>
                 <div id="lista-filtrada" class="mt-8 text-gray-400"></div>
             </div>
         `;
@@ -2027,15 +2078,69 @@ window.generarEstadistica = async () => {
     window.datosAgrupados = []; 
 
     datos.forEach(item => {
-        let valRaw = String(item[campo] || 'No definido').toLowerCase().trim();
-        let grupo;
-        
-        // Detección de booleanos (SI/NO)
-        if (item[campo] === true || item[campo] === false || ['si', 'no', 'sí', 'no'].includes(valRaw)) {
-            grupo = (valRaw === 'true' || valRaw === 'si' || valRaw === 'sí') ? 'SÍ' : 'NO';
-        } else {
-            grupo = sinonimos[valRaw] || valRaw.toUpperCase();
+        let valor;
+
+// Si el reporte es RANGO VOCAL
+if (campo === 'rangoVocal') {
+
+    // Ignorar instrumentos
+    if ((item.rol || '').toLowerCase() !== 'voz') {
+        return;
+    }
+
+    valor = item.detalle;
+
+} else {
+
+    valor = item[campo];
+
+    // Agrupar horas con tolerancia de 15 minutos
+    if ((campo === 'horaEntrada' || campo === 'horaSalida') && valor) {
+
+        let [hora, minuto] = valor.split(':').map(Number);
+
+        // Si pasan más de 15 minutos, pasa al siguiente bloque
+        if (minuto > 15) {
+            hora++;
         }
+
+        // Evita 24:00
+        hora = hora % 24;
+
+        valor = `${String(hora).padStart(2, '0')}:00`;
+    }
+
+}
+
+
+
+let valRaw = String(valor || '').toLowerCase().trim();
+let grupo;
+
+// Para deporte y hobbie solo mostrar SI / NO
+if (campo === 'deporteCual' || campo === 'hobbieCual') {
+
+    grupo = valRaw ? 'SÍ' : 'NO';
+
+}
+// Detección de booleanos
+else if (
+    valor === true ||
+    valor === false ||
+    ['si', 'no', 'sí', 'no'].includes(valRaw)
+) {
+
+    grupo = (valRaw === 'true' || valRaw === 'si' || valRaw === 'sí')
+        ? 'SÍ'
+        : 'NO';
+
+}
+// Resto de campos
+else {
+
+    grupo = sinonimos[valRaw] || (valRaw ? valRaw.toUpperCase() : 'NO DEFINIDO');
+
+}
 
         // PRIORIDAD: NICKNAME (Si no existe, ponemos "SIN NICKNAME")
         const identificador = item.nickname || "SIN NICKNAME";
@@ -2054,29 +2159,101 @@ window.generarEstadistica = async () => {
 
     // Configuración de la gráfica
     if (window.miDona) window.miDona.destroy();
+
+    if (campo === 'formacionEducativa') {
+
+    const orden = [
+        'NIVEL PRIMARIO',
+        'NIVEL BÁSICO',
+        'NIVEL DIVERSIFICADO',
+        'NIVEL TÉCNICO',
+        'NIVEL UNIVERSITARIO',
+        'NIVEL MAESTRÍA',
+        'NIVEL DOCTORADO',
+        'CURSOS DE ESPECIALIZACIÓN',
+        'NO APLICA NINGUNO'
+    ];
+
+    window.datosAgrupados.sort((a, b) => {
+        return orden.indexOf(a.nombre) - orden.indexOf(b.nombre);
+    });
+}
     
-    window.miDona = new Chart(canvas, {
-        type: 'doughnut',
-        data: {
-            labels: window.datosAgrupados.map(g => g.nombre),
-            datasets: [{
-                data: window.datosAgrupados.map(g => g.miembros.length),
-                backgroundColor: ['#D4AF37', '#ffffff', '#333333', '#555555', '#777777']
-            }]
-        },
-        options: { 
-            responsive: true, 
-            plugins: { legend: { labels: { color: '#ffffff' } } },
-            onClick: (e, elements) => {
-                if (elements.length > 0) {
-                    const index = elements[0].index;
-                    window.mostrarListaDetallada(window.datosAgrupados[index].nombre);
+  Chart.register(ChartDataLabels);
+
+window.miDona = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+        labels: window.datosAgrupados.map(g => g.nombre),
+        datasets: [{
+            data: window.datosAgrupados.map(g => g.miembros.length),
+            backgroundColor: [
+                '#D4AF37',
+                '#F5F5F5',
+                '#6C63FF',
+                '#00C2A8',
+                '#FF6B6B',
+                '#4D96FF',
+                '#9D4EDD',
+                '#F4A261',
+                '#2A9D8F',
+                '#E76F51',
+                '#8EC5FC',
+                '#A8DADC'
+            ],
+            borderColor: '#1a1a1a',
+            borderWidth: 2,
+            hoverOffset: 10,
+            radius: '100%',
+            cutout: '40%'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        plugins: {
+            legend: {
+                position: 'left',
+                align: 'center',
+                labels: {
+                    color: '#fff',
+                    boxWidth: 18,
+                    boxHeight: 18,
+                    padding: 12,
+                    font: {
+                        size: 12
+                    }
+                }
+            },
+
+            datalabels: {
+                color: '#fff',
+                font: {
+                    weight: 'bold',
+                    size: 16
+                },
+                formatter: (value, context) => {
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    return ((value / total) * 100).toFixed(1) + '%';
                 }
             }
-        }
-    });
+        },
 
-    contenedorLista.innerHTML = `<p class="text-gray-400 italic">Haz clic en una sección de la dona para ver los integrantes.</p>`;
+        onClick: (e, elements) => {
+            if (elements.length > 0) {
+                const index = elements[0].index;
+                window.mostrarListaDetallada(window.datosAgrupados[index].nombre);
+            }
+        }
+    }
+});
+
+contenedorLista.innerHTML = `
+<p class="text-gray-400 italic">
+    Haz clic en una sección de la dona para ver los integrantes.
+</p>
+`;
 };
 
 // Función auxiliar para mostrar lista
@@ -2107,13 +2284,14 @@ window.cargarPreguntasAlSelect = async () => {
          { id: 'dinamicasVida', label: 'DINAMICA DE VIDA' },
         { id: 'estadoCivil', label: 'ESTADO CIVIL' },
         { id: 'sexo', label: 'SEXO' },
-        { id: 'fechaNacimiento', label: 'AÑO DE NACIMIENTO' }, // Nota: Se procesará por año
-        { id: 'mesCumpleanos', label: 'QUIENES CUMPLEN AÑOS SEGUN LOS 12 MESES' },
+        
+        { id: 'mesCumpleanos', label: 'CUMPLEAÑOS' },
         { id: 'formacionEducativa', label: 'FORMACION EDUCATIVA' },
         { id: 'zonaSalida', label: 'ZONA DE SALIDA DE TRABAJO' },
         { id: 'horaEntrada', label: 'HORA DE ENTRADA' },
         { id: 'horaSalida', label: 'HORA DE SALIDA' },
         { id: 'rol', label: 'ROL EN LA ALABANZA' },
+        { id: 'rangoVocal', label: 'RANGO VOCAL' },
         { id: 'red', label: 'RED A LA QUE PERTENECE' },
         { id: 'facilidadLlegarSemana', label: 'DISPOSICION ENTRE SEMANA' },
         { id: 'dispSemanaNoche', label: 'DISPOSICION ENTRE SEMANA POR LA NOCHE' },
@@ -2122,8 +2300,8 @@ window.cargarPreguntasAlSelect = async () => {
         { id: 'dispSabadoNoche', label: 'DISP SABADO NOCHE' },
         { id: 'facilidadLlegarCdd', label: 'FACILIDAD LLEGAR A CDD' },
         { id: 'asisteGrupo', label: 'ASISTE A UN GRUPO' },
-        { id: 'deporteCual', label: 'DEPORTE QUE PRACTICA' },
-        { id: 'hobbieCual', label: 'HOBBIE' },
+        { id: 'deporteCual', label: '¿PRACTICA DEPORTE?' },
+        { id: 'hobbieCual', label: '¿TIENE ALGUN HOBBIE?' },
         { id: 'registradoVid', label: 'REGISTRADOS EN VID' },
         { id: 'asisteDiscipulado', label: 'ASISTEN A DISCIPULADO' },
         { id: 'graduadoAdl', label: 'GRADUADOS DE ADL' },
@@ -2301,6 +2479,9 @@ window.editarVoluntario = (id) => {
 
     console.log("Datos que estamos intentando cargar:", v);
 
+    // Siempre abrir la edición en la primera sección
+    window.cambiarSeccion(1);
+
     // Función para manejar cualquier tipo de input
     const set = (id, val, isCheck = false, intentos = 0) => {
         const el = document.getElementById(id);
@@ -2310,36 +2491,40 @@ window.editarVoluntario = (id) => {
         }
 
         if (isCheck) {
-            const debeEstarMarcado = !!val;
-            if (el.checked !== debeEstarMarcado) {
-                el.click(); 
-            }
-        } else if (el.tagName === 'SELECT') {
-            // Convertimos el valor a string para comparar bien
-            const valStr = String(val || "").trim().toLowerCase();
-            let encontrada = false;
+        el.checked = !!val;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        return;
+    }
 
-            for (let option of el.options) {
-                // Comparamos valor y texto de forma flexible (insensible a mayúsculas)
-                const optVal = String(option.value).trim().toLowerCase();
-                const optText = String(option.text).trim().toLowerCase();
-                
-                if (optVal === valStr || optText === valStr) {
-                    el.value = option.value;
-                    encontrada = true;
-                    break;
-                }
+    // ===== SELECT =====
+    if (el.tagName === 'SELECT') {
+        const valStr = String(val || "").trim().toLowerCase();
+        let encontrada = false;
+
+        for (const option of el.options) {
+            const optVal = String(option.value).trim().toLowerCase();
+            const optText = String(option.text).trim().toLowerCase();
+
+            if (optVal === valStr || optText === valStr) {
+                el.value = option.value;
+                encontrada = true;
+                break;
             }
+        }
 
             // Si no se encontró, reintentamos hasta 10 veces
             if (!encontrada && intentos < 10) {
-                setTimeout(() => set(id, val, isCheck, intentos + 1), 200);
-            } else if (encontrada) {
-                // Disparamos el evento para que tu web registre el cambio
-                el.dispatchEvent(new Event('change', { bubbles: true }));
-            } else {
-                console.warn(`No se encontró coincidencia para "${val}" en el select: ${id}`);
-            }
+   setTimeout(() => set(id, val, false, intentos + 1), 200);
+    return;
+}
+
+if (!encontrada) {
+    el.value = val || '';
+    console.warn(`No se encontró coincidencia para "${val}" en el select: ${id}`);
+}
+
+el.dispatchEvent(new Event('change', { bubbles: true }));
+return;
         } else {
             el.value = val || '';
         }
@@ -2397,39 +2582,48 @@ window.editarVoluntario = (id) => {
     };
     cargarInstrumento();
 
-    // --- SECCIÓN 2: LÍDER Y GRUPO ---
-    set('asiste-grupo', v.asisteGrupo, true);
-    set('graduado-adl', v.graduadoAdl, true);
-    set('lider-grupo', v.liderGrupo, true);
-    set('asiste-discipulado', v.asisteDiscipulado, true);
-    set('lider-discipulado', v.liderDiscipulado, true);
-    set('nombre-lider', v.lider);
-    set('tel-lider', v.telLider);
-    set('red-pertenencia', v.red);
-    set('registrado-vid', v.registradoVid);
+   // --- SECCIÓN 2: LÍDER Y GRUPO ---
+set('asiste-grupo', v.asisteGrupo, true);
+set('graduado-adl', v.graduadoAdl, true);
+set('lider-grupo', v.liderGrupo, true);
+set('asiste-discipulado', v.asisteDiscipulado, true);
+set('lider-discipulado', v.liderDiscipulado, true);
 
-    // --- SECCIÓN 3: DISPONIBILIDAD ---
-    set('transporte', v.transporte);
-    set('facilidad-llegar', v.facilidadLlegarSemana);
-    set('hora-entrada', v.horaEntrada);
-    set('hora-salida', v.horaSolida);
-    set('facilidad-llegar-cdd', v.facilidadLlegarCdd);
-    set('tiempo-ensayo', v.tiempoEnsayo);
-    set('tiempo-entre-semana', v.tiempoEntreSemana);
-    set('zona-salida', v.zonaSalida);
-    set('tiempo-domingo', v.tiempoDomingo);
+if (typeof toggleLider === 'function') toggleLider();
 
-    set('disp-semana-noche', v.dispSemanaNoche, true);
-    set('disp-semana-manana', v.dispSemanaManana, true);
-    set('disp-sabado-manana', v.dispSabadoManana, true);
-    set('disp-sabado-tarde', v.dispSabadoTarde, true);
-    set('disp-sabado-noche', v.dispSabadoNoche, true);
+set('nombre-lider', v.lider);
+set('tel-lider', v.telLider);
+set('red-pertenencia', v.red);
+set('registrado-vid', v.registradoVid);
 
-    set('hace-deporte', v.haceDeporte);
-    set('campo-deporte', v.deporteCual);
-    set('tiene-hobbie', v.tieneHobbie);
-    set('campo-hobbie', v.hobbieCual);
-    set('observaciones', v.observaciones);
+// --- SECCIÓN 3: DISPONIBILIDAD ---
+set('transporte', v.transporte);
+set('facilidad-llegar', v.facilidadLlegarSemana);
+set('hora-entrada', v.horaEntrada);
+set('hora-salida', v.horaSalida); // <-- corregido
+set('facilidad-llegar-cdd', v.facilidadLlegarCdd);
+set('tiempo-ensayo', v.tiempoEnsayo);
+set('tiempo-entre-semana', v.tiempoEntreSemana);
+set('zona-salida', v.zonaSalida);
+set('tiempo-domingo', v.tiempoDomingo);
+
+// CHECKBOXES DE DISPONIBILIDAD
+const marcar = (name, valor) => {
+    const cb = document.querySelector(`input[name="${name}"]`);
+    if (cb) cb.checked = !!valor;
+};
+
+marcar('disp-semana-noche', v.dispSemanaNoche);
+marcar('disp-semana-manana', v.dispSemanaManana);
+marcar('disp-sabado-manana', v.dispSabadoManana);
+marcar('disp-sabado-tarde', v.dispSabadoTarde);
+marcar('disp-sabado-noche', v.dispSabadoNoche);
+
+set('hace-deporte', v.haceDeporte);
+set('campo-deporte', v.deporteCual);
+set('tiene-hobbie', v.tieneHobbie);
+set('campo-hobbie', v.hobbieCual);
+set('observaciones', v.observaciones);
 
     document.getElementById('modal-voluntario').classList.remove('hidden');
 };
@@ -2831,53 +3025,6 @@ function aplicarFiltroLogistica(tipo) {
 }
 
 
-
-window.ejecutarLogicaDeGuardado = async () => {
-    const btn = document.getElementById('btn-guardar-voluntario');
-    const idInput = document.getElementById('edit-cancion-id'); // <--- El ID correcto
-    const id = idInput ? idInput.value : ''; // Aquí está la clave: ¿hay ID o no?
-
-    // 1. Recopilación de datos (completa todos tus campos aquí)
-    const datos = {
-        nombre: document.getElementById('nombre')?.value || '',
-        nickname: document.getElementById('nickname')?.value || '',
-        telefono: document.getElementById('telefono')?.value || '',
-        // ... (agrega aquí todos los demás campos que tenías en tu script largo)
-        fechaActualizacion: new Date().toISOString()
-    };
-
-    if (!datos.nombre) {
-        window.showToast("El nombre es obligatorio");
-        return;
-    }
-
-    try {
-        btn.disabled = true;
-        btn.innerText = "Guardando...";
-
-        if (id && id.trim() !== "") {
-            // --- ACTUALIZAR: El registro existe, lo modificamos ---
-            const docRef = window.doc(window.db, "voluntarios", id);
-            await window.updateDoc(docRef, datos);
-            window.showToast("¡Datos actualizados correctamente!");
-        } else {
-            // --- CREAR: No hay ID, es uno nuevo ---
-            await window.addDoc(window.collection(window.db, "voluntarios"), datos);
-            window.showToast("¡Datos guardados correctamente!");
-        }
-        
-        window.cerrarFormulario();
-        // IMPORTANTE: Limpiar el ID después de guardar para que no se quede pegado
-        if (idInput) idInput.value = ''; 
-        
-    } catch (error) {
-        console.error("Error al guardar:", error);
-        window.showToast("Error al guardar en la base de datos");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Guardar";
-    }
-};
 
 
 
