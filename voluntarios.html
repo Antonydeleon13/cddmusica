@@ -760,81 +760,82 @@ window.cargarEnsayos = async function() {
 
 
 
-// Variable global para controlar la cámara
+// Variable global
 let html5QrCode;
 
-// ESTA ES LA FUNCIÓN QUE TU BOTÓN LLAMA
-window.iniciarEscaneoUI = () => {
-    // 1. Crear un div de consola en pantalla si no existe
-    let debugDiv = document.getElementById('debug-log');
-    if (!debugDiv) {
-        debugDiv = document.createElement('div');
-        debugDiv.id = 'debug-log';
-        debugDiv.style = 'position:fixed; bottom:0; left:0; width:100%; height:150px; background:black; color:lime; font-size:10px; overflow:scroll; z-index:9999;';
-        document.body.appendChild(debugDiv);
-    }
-    
-    const log = (msg) => {
-        debugDiv.innerHTML += msg + "<br>";
-        console.log(msg);
-    };
-
+window.iniciarEscaneoUI = async () => {
     const readerContainer = document.getElementById('reader-container');
     const msg = document.getElementById('mensaje-no-qr');
+    
     msg.classList.add('hidden');
     readerContainer.classList.remove('hidden');
 
-    log("Iniciando cámara...");
+    // Limpiamos instancias previas para evitar conflictos
+    if (html5QrCode) {
+        try { await html5QrCode.stop(); } catch(e) {}
+    }
 
     html5QrCode = new Html5Qrcode("reader");
 
-    html5QrCode.start(
-    { facingMode: "environment" }, 
-    { 
+    // Configuración simplificada (sin videoConstraints complejos que bloquean móviles)
+    const config = { 
         fps: 10, 
-        qrbox: 250,
-        // ESTA LÍNEA ES CLAVE PARA MÓVILES
-        videoConstraints: {
-            facingMode: { exact: "environment" },
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0 
+    };
+
+    try {
+        // Intentar con cámara trasera primero
+        await html5QrCode.start(
+            { facingMode: "environment" }, 
+            config,
+            (decodedText) => {
+                // Éxito: detener cámara y procesar
+                html5QrCode.stop().then(() => procesarToken(decodedText));
+            },
+            () => {} // Error silenciado
+        );
+    } catch (err) {
+        console.warn("Cámara trasera falló, intentando frontal:", err);
+        // Fallback a cámara frontal
+        try {
+            await html5QrCode.start(
+                { facingMode: "user" }, 
+                config,
+                (decodedText) => {
+                    html5QrCode.stop().then(() => procesarToken(decodedText));
+                },
+                () => {}
+            );
+        } catch (e) {
+            alert("No se pudo acceder a la cámara. Revisa los permisos en el navegador.");
         }
-    },
-    (decodedText) => {
-        alert("¡ÉXITO! Detectado");
-        procesarToken(decodedText);
-    },
-    (errorMessage) => { 
-        // No logueamos errores aquí para no bloquear el hilo principal
     }
-).catch(err => {
-    // Si falla 'environment', intentamos con cualquier cámara
-    log("Fallo en trasera, intentando frontal...");
-    html5QrCode.start(
-        { facingMode: "user" },
-        { fps: 10, qrbox: 250 },
-        (decodedText) => { procesarToken(decodedText); },
-        () => {}
-    ).catch(e => log("Error crítico final: " + e));
-});
 };
 
-// Función auxiliar para centralizar
 async function procesarToken(decodedText) {
-    console.log("Procesando token...");
     try {
-        let token = decodedText.includes("?") ? new URL(decodedText).searchParams.get("token") : decodedText;
-        const nuevaUrl = new URL(window.location.href);
-        nuevaUrl.searchParams.set("token", token);
-        window.history.pushState({}, '', nuevaUrl);
-        await window.mostrarTab('asistencia');
-        alert("Navegación disparada");
+        let token = "";
+        if (decodedText.includes("?")) {
+            const url = new URL(decodedText);
+            token = url.searchParams.get("token");
+        } else {
+            token = decodedText;
+        }
+
+        if (token) {
+            const nuevaUrl = new URL(window.location.href);
+            nuevaUrl.searchParams.set("token", token);
+            window.history.pushState({}, '', nuevaUrl);
+            await window.mostrarTab('asistencia');
+        } else {
+            alert("QR detectado pero no es un token válido");
+        }
     } catch(e) {
-        alert("Error en procesarToken: " + e);
+        alert("Error procesando QR: " + e.message);
     }
 }
 
-// ESTA FUNCIÓN CIERRA LA CÁMARA
 window.cerrarEscaneo = () => {
     if (html5QrCode) {
         html5QrCode.stop().then(() => {
