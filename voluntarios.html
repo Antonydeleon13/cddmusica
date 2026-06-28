@@ -789,24 +789,34 @@ window.iniciarEscaneoUI = () => {
     html5QrCode = new Html5Qrcode("reader");
 
     html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        (decodedText) => {
-            log("¡QR Detectado! Texto: " + decodedText);
-            
-            // Forzamos el alert para confirmar que entró aquí
-            alert("QR detectado, procesando...");
-            
-            // Resto de tu lógica...
-            procesarToken(decodedText);
-        },
-        (errorMessage) => {
-            // Esto se dispara muchas veces, no lo logueamos para no saturar
+    { facingMode: "environment" }, 
+    { 
+        fps: 10, 
+        qrbox: 250,
+        // ESTA LÍNEA ES CLAVE PARA MÓVILES
+        videoConstraints: {
+            facingMode: { exact: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
         }
-    ).catch(err => {
-        log("Error crítico: " + err);
-        alert("Error: " + err);
-    });
+    },
+    (decodedText) => {
+        alert("¡ÉXITO! Detectado");
+        procesarToken(decodedText);
+    },
+    (errorMessage) => { 
+        // No logueamos errores aquí para no bloquear el hilo principal
+    }
+).catch(err => {
+    // Si falla 'environment', intentamos con cualquier cámara
+    log("Fallo en trasera, intentando frontal...");
+    html5QrCode.start(
+        { facingMode: "user" },
+        { fps: 10, qrbox: 250 },
+        (decodedText) => { procesarToken(decodedText); },
+        () => {}
+    ).catch(e => log("Error crítico final: " + e));
+});
 };
 
 // Función auxiliar para centralizar
