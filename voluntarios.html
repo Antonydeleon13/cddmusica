@@ -52,7 +52,17 @@
     }
 
 
-
+#reader {
+        width: 100% !important;
+        min-height: 350px !important; /* IMPORTANTE: Esto le da el espacio a la cámara */
+        overflow: hidden;
+        border-radius: 1rem;
+    }
+    /* Aseguramos que el video dentro se ajuste */
+    #reader video {
+        width: 100% !important;
+        object-fit: cover !important;
+    }
 
 </style>
 
@@ -133,11 +143,11 @@
 <div id="tab-asistencia" class="p-6 bg-premium rounded-2xl border border-gray-800" style="display: none;">
     
     <div id="reader-container" style="display: none;">
-        <div id="reader" style="width: 100%;"></div>
-        <button onclick="window.cerrarEscaneo()" class="w-full mt-4 text-xs text-red-400 hover:text-white transition">
-            Cancelar escaneo
-        </button>
-    </div>
+    <div id="reader"></div>
+    <button onclick="window.cerrarEscaneo()" class="w-full mt-4 text-xs text-red-400 hover:text-white transition">
+        Cancelar escaneo
+    </button>
+</div>
 
     <div id="mensaje-no-qr" class="text-center p-8 flex flex-col items-center">
         <p class="text-gray-500 text-sm uppercase tracking-widest">No hay un código QR activo.</p>
