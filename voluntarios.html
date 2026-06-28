@@ -778,19 +778,25 @@ window.iniciarEscaneoUI = () => {
 
         // 2. Lógica de procesamiento automática
         fileInput.onchange = async (e) => {
-            if (e.target.files.length === 0) return;
-            
-            const file = e.target.files[0];
-            const qrScanner = new Html5Qrcode("reader");
+    if (e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    const qrScanner = new Html5Qrcode("reader");
 
-            try {
-                // Escaneo automático de la foto recién tomada
-                const decodedText = await qrScanner.scanFile(file, true);
-                procesarToken(decodedText);
-            } catch (err) {
-                alert("No se pudo leer el QR. Asegúrate de enfocar bien el código.");
-            }
-        };
+    // Mostramos un mensaje de "Procesando..." para que el usuario no crea que se trabó
+    alert("Procesando imagen, espera un momento...");
+
+    try {
+        // Usamos una configuración de lectura más agresiva (tryHarder: true)
+        const config = { fps: 10, qrbox: 250 };
+        const decodedText = await qrScanner.scanFile(file, true);
+        procesarToken(decodedText);
+    } catch (err) {
+        // ERROR DE LECTURA
+        console.error("Error detallado:", err);
+        alert("La imagen se recibió, pero no detectó un QR válido. Intenta tomar la foto con más luz y asegurándote de que el QR esté centrado.");
+    }
+};
     }
 
     // 3. Disparamos la acción
