@@ -764,38 +764,42 @@ window.cargarEnsayos = async function() {
 let html5QrCode = null;
 
 window.iniciarEscaneoUI = () => {
-    // 1. Crear el input solo una vez
-    let fileInput = document.getElementById('hidden-qr-input');
-    if (!fileInput) {
-        fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.id = 'hidden-qr-input';
-        fileInput.accept = 'image/*';
-        fileInput.setAttribute('capture', 'environment');
-        fileInput.style.display = 'none';
-        document.body.appendChild(fileInput);
+    // Esto es un "truco" de compatibilidad extrema
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment'; // Abre la cámara directamente
 
-        fileInput.onchange = async (e) => {
-            if (!e.target.files.length) return;
-            const file = e.target.files[0];
-            
-            // Usamos una instancia nueva para limpiar cualquier estado previo
-            const qrScanner = new Html5Qrcode("reader");
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-            try {
-                // "scanFile" es nativamente más robusto que "scanCanvas" en móviles
-                // porque maneja mejor la rotación de la foto (EXIF data)
-                const decodedText = await qrScanner.scanFile(file, true);
-                procesarToken(decodedText);
-            } catch (err) {
-                // Si falla, es posible que el navegador haya girado la foto
-                // Aquí el usuario recibe el feedback que ya conoces
-                alert("No se pudo leer el QR. Intenta tomar la foto con buena luz, QR centrado y no muevas el móvil al disparar.");
+        // AQUÍ ESTÁ EL CAMBIO: No usaremos html5-qrcode para "leer" la foto.
+        // Vamos a enviar la foto directamente al servicio que SÍ la sabe leer.
+        const formData = new FormData();
+        formData.append('file', file);
+
+        alert("Estamos procesando tu código...");
+
+        fetch('https://api.qrserver.com/v1/read-qr-code/', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            const token = data[0]?.symbol[0]?.data;
+            if (token) {
+                procesarToken(token);
+            } else {
+                throw new Error("No se pudo detectar el QR");
             }
-        };
-    }
+        })
+        .catch(err => {
+            alert("El lector del servidor no pudo detectar el QR. Asegúrate de que el QR esté bien enfocado y no tenga reflejos.");
+        });
+    };
 
-    fileInput.click();
+    input.click();
 };
 
 async function procesarToken(decodedText) {
