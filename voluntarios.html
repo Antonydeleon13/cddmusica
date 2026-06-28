@@ -759,37 +759,45 @@ window.iniciarEscaneoUI = () => {
 
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start(
-        { facingMode: "environment" }, 
-        { fps: 10, qrbox: 250 },
-        (decodedText) => {
-            console.log("QR Detectado:", decodedText);
-            
-            // Forzamos la lógica: Buscamos si el texto es una URL completa o solo tiene los parámetros
-            let token = "";
-            
+    { facingMode: "environment" }, 
+    { fps: 10, qrbox: 250 },
+    (decodedText) => {
+        console.log("QR Detectado:", decodedText);
+
+        // 1. Extraer el token
+        let token = "";
+        try {
             if (decodedText.includes("?")) {
                 const url = new URL(decodedText);
                 token = url.searchParams.get("token");
             } else {
-                // Si el QR solo tiene el token como texto plano
                 token = decodedText;
             }
-            
-            if (token) {
-                // DETENER CÁMARA ANTES DE NAVEGAR
-                html5QrCode.stop().then(() => {
-                    // AQUÍ ESTÁ EL CAMBIO: Usamos replace para asegurar el recargo
-                    window.location.href = window.location.origin + window.location.pathname + `?token=${token}`;
-                }).catch(err => console.log(err));
-            } else {
-                alert("QR detectado, pero no contiene un token válido.");
-            }
-        },
-        (errorMessage) => { /* Silencioso */ }
-    ).catch(err => {
-        alert("Error de cámara: " + err);
-        window.cerrarEscaneo();
-    });
+        } catch (e) { token = decodedText; }
+
+        if (token) {
+            // 2. DETENER CÁMARA y esperar a que el DOM esté libre
+            html5QrCode.stop().then(() => {
+                // 3. CAMBIO CRÍTICO: Usamos setTimeout para salir del contexto del escáner
+                // y navegamos forzosamente.
+                setTimeout(() => {
+                    const urlDestino = window.location.origin + window.location.pathname + `?token=${token}`;
+                    window.location.replace(urlDestino); 
+                }, 100);
+            }).catch(err => {
+                console.error(err);
+                window.location.replace(window.location.origin + window.location.pathname + `?token=${token}`);
+            });
+        } else {
+            alert("QR detectado, pero no contiene un token válido.");
+        }
+    },
+    (errorMessage) => { /* Silencioso */ }
+).catch(err => {
+    console.error("Error de cámara:", err);
+    // Si falla la cámara, forzamos recarga
+    window.cerrarEscaneo();
+});
 };
 
 // ESTA FUNCIÓN CIERRA LA CÁMARA
