@@ -776,42 +776,46 @@ window.iniciarEscaneoUI = () => {
 
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start(
-        { facingMode: "environment" }, 
-        { fps: 10, qrbox: 250 },
-        async (decodedText) => {
-            let token = "";
-            try {
-                if (decodedText.includes("?")) {
-                    const url = new URL(decodedText);
-                    token = url.searchParams.get("token");
-                } else {
-                    token = decodedText;
-                }
-            } catch (e) { token = decodedText; }
+    { facingMode: "environment" }, 
+    { fps: 10, qrbox: 250 },
+    async (decodedText) => {
+        // --- LOG DE SEGURIDAD PARA VER QUÉ PASA ---
+        console.log("Detectado:", decodedText);
+        alert("¡QR detectado! Contenido: " + decodedText); // ESTO ES PARA VER SI LLEGA HASTA AQUÍ
 
-            if (token) {
-                // Detenemos cámara primero
-                await html5QrCode.stop();
-                
-                // OCULTAMOS EL LECTOR
-                readerContainer.classList.add('hidden');
-                
-                // AÑADIMOS EL TOKEN A LA URL SIN RECARGAR
-                const nuevaUrl = new URL(window.location.href);
-                nuevaUrl.searchParams.set("token", token);
-                window.history.pushState({}, '', nuevaUrl);
+        // 1. Extraer el token
+        let token = "";
+        try {
+            const url = new URL(decodedText);
+            token = url.searchParams.get("token");
+        } catch (e) {
+            token = decodedText;
+        }
 
-                // RE-EJECUTAMOS LA LÓGICA DE ASISTENCIA SIN SALIR DE LA PÁGINA
-                await window.mostrarTab('asistencia');
-            } else {
-                alert("QR no válido.");
-            }
-        },
-        (errorMessage) => { /* Silencioso */ }
-    ).catch(err => {
-        console.error("Error de cámara:", err);
-        window.cerrarEscaneo();
-    });
+        if (token) {
+            // DETENER CÁMARA
+            await html5QrCode.stop();
+            
+            // LOG DE VALIDACIÓN
+            console.log("Token obtenido:", token);
+            
+            // AÑADIR A LA URL Y MOSTRAR TAB
+            const nuevaUrl = new URL(window.location.href);
+            nuevaUrl.searchParams.set("token", token);
+            window.history.pushState({}, '', nuevaUrl);
+
+            // LLAMAR A LA INTERFAZ
+            await window.mostrarTab('asistencia');
+        } else {
+            alert("QR detectado, pero no encontré un token.");
+        }
+    },
+    (errorMessage) => { 
+        // Silencioso
+    }
+).catch(err => {
+    console.error("Error:", err);
+});
 };
 
 // ESTA FUNCIÓN CIERRA LA CÁMARA
