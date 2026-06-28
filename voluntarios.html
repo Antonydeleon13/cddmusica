@@ -761,63 +761,92 @@ window.cargarEnsayos = async function() {
 
 
 // Variable global
-let html5QrCode;
+// Variable global para manejar la instancia de la cámara/escáner
+let html5QrCode = null;
 
 window.iniciarEscaneoUI = () => {
-    // 1. Buscamos o creamos el input oculto
+    // 1. Buscamos o creamos el input oculto para disparar la cámara nativa
     let fileInput = document.getElementById('hidden-qr-input');
     if (!fileInput) {
         fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.id = 'hidden-qr-input';
         fileInput.accept = 'image/*';
-        // ESTA LÍNEA ABRE LA CÁMARA DIRECTAMENTE EN MÓVILES
-        fileInput.setAttribute('capture', 'environment'); 
+        fileInput.setAttribute('capture', 'environment'); // Fuerza cámara trasera
         fileInput.style.display = 'none';
         document.body.appendChild(fileInput);
 
-        // 2. Lógica de procesamiento automática
+        // 2. Lógica de procesamiento de la foto tomada
         fileInput.onchange = async (e) => {
-    if (e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    const qrScanner = new Html5Qrcode("reader");
+            if (e.target.files.length === 0) return;
+            
+            const file = e.target.files[0];
+            const reader = new FileReader();
 
-    // Mostramos un mensaje de "Procesando..." para que el usuario no crea que se trabó
-    alert("Procesando imagen, espera un momento...");
+            // Usamos un pequeño loading visual
+            alert("Procesando imagen, espera un momento...");
 
-    try {
-        // Usamos una configuración de lectura más agresiva (tryHarder: true)
-        const config = { fps: 10, qrbox: 250 };
-        const decodedText = await qrScanner.scanFile(file, true);
-        procesarToken(decodedText);
-    } catch (err) {
-        // ERROR DE LECTURA
-        console.error("Error detallado:", err);
-        alert("La imagen se recibió, pero no detectó un QR válido. Intenta tomar la foto con más luz y asegurándote de que el QR esté centrado.");
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = async () => {
+                    // Creamos un Canvas para normalizar la imagen (limpia ruido y ajusta tamaño)
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 800;
+                    canvas.height = 800;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, 800, 800);
+
+                    // Intentamos leer el QR desde el canvas procesado
+                    const qrScanner = new Html5Qrcode("reader");
+                    try {
+                        const decodedText = await qrScanner.scanCanvas(canvas);
+                        procesarToken(decodedText);
+                    } catch (err) {
+                        console.error("Error de lectura:", err);
+                        alert("La imagen se recibió, pero no detectó un QR válido. Asegúrate de tomar la foto con buena luz y centrando el código.");
+                    }
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
     }
-};
-    }
 
-    // 3. Disparamos la acción
+    // 3. Disparamos la acción de la cámara
     fileInput.click();
 };
 
-// Lógica de navegación centralizada
+// Lógica centralizada para manejar el resultado
 async function procesarToken(decodedText) {
-    let token = decodedText.includes("?") ? new URL(decodedText).searchParams.get("token") : decodedText;
-    const nuevaUrl = new URL(window.location.href);
-    nuevaUrl.searchParams.set("token", token);
-    window.history.pushState({}, '', nuevaUrl);
-    await window.mostrarTab('asistencia');
+    try {
+        let token = "";
+        // Extraemos el token si es una URL, si es texto plano lo tomamos directo
+        if (decodedText.includes("?")) {
+            const urlObj = new URL(decodedText);
+            token = urlObj.searchParams.get("token") || decodedText;
+        } else {
+            token = decodedText;
+        }
+
+        // Actualizamos la URL y navegamos
+        const nuevaUrl = new URL(window.location.href);
+        nuevaUrl.searchParams.set("token", token);
+        window.history.pushState({}, '', nuevaUrl);
+        
+        // Ejecutamos la función que cambia de tab en tu app
+        await window.mostrarTab('asistencia');
+    } catch(e) {
+        alert("Error al procesar el token: " + e.message);
+    }
 }
 
+// Función para cerrar cualquier proceso activo
 window.cerrarEscaneo = () => {
     if (html5QrCode) {
         html5QrCode.stop().then(() => {
             document.getElementById('reader-container').classList.add('hidden');
             document.getElementById('mensaje-no-qr').classList.remove('hidden');
-        }).catch(err => console.log(err));
+        }).catch(err => console.log("Error al cerrar:", err));
     }
 };
 
