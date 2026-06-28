@@ -98,34 +98,69 @@
 
         <div class="group perspective w-full h-auto">
     <div id="card-inner" class="relative w-full transition-transform duration-700 transform-style-3d">
-        
+
+        <!-- Frente -->
         <div id="card-front" class="w-full bg-premium p-6 rounded-2xl border border-gray-800 backface-hidden">
-            <div id="team-badge" 
-     class="text-center text-gold font-black uppercase tracking-[0.2em] 
-            text-2xl md:text-5xl my-10 cursor-pointer hover:opacity-80 transition-opacity" 
-     onclick="flipCard()">
-     Cargando...
-</div>
-            
-            <form id="form-perfil" class="space-y-4">
-                <input type="text" id="edit-nombre" placeholder="Nombre" class="w-full bg-[#161616] p-3 rounded-lg border border-gray-800 text-sm">
-                <input type="text" id="edit-nickname" placeholder="Nickname" class="w-full bg-[#161616] p-3 rounded-lg border border-gray-800 text-sm">
-                <input type="tel" id="edit-telefono" placeholder="Teléfono" class="w-full bg-[#161616] p-3 rounded-lg border border-gray-800 text-sm">
-                <input type="email" id="edit-email" readonly class="w-full bg-[#161616] p-3 rounded-lg border border-gray-800 text-sm text-gray-500">
-                <input type="text" id="edit-rol" readonly class="w-full bg-[#161616] p-3 rounded-lg border border-gray-800 text-sm text-gray-500">
-                <input type="text" id="edit-direccion" placeholder="Dirección" class="w-full bg-[#161616] p-3 rounded-lg border border-gray-800 text-sm">
-                <button type="submit" class="w-full mt-4 bg-[#D4AF37] text-black py-3 rounded-lg text-xs font-bold uppercase tracking-widest">Guardar Cambios</button>
-            </form>
-            <p class="text-[9px] text-gray-600 mt-6 text-center uppercase tracking-[0.2em] cursor-pointer" onclick="flipCard()">Ver Integrantes del Equipo →</p>
+
+            <!-- TEAM -->
+            <div id="team-badge"
+                class="text-center text-gold font-black uppercase tracking-[0.2em]
+                       text-2xl md:text-5xl my-10 cursor-pointer hover:opacity-80 transition-opacity"
+                onclick="flipCard()">
+                Cargando...
+            </div>
+
+            <!-- Información -->
+            <div class="space-y-4 mt-8">
+
+                <!-- Nickname -->
+                <div class="bg-[#161616] p-4 rounded-lg border border-gray-800">
+                    <p class="text-[9px] uppercase tracking-widest text-gray-500 mb-1">
+                        Nombre
+                    </p>
+                    <p id="perfil-nickname" class="text-white text-lg font-bold">
+                        --
+                    </p>
+                </div>
+
+                <!-- Instrumento / Voz -->
+                <div class="bg-[#161616] p-4 rounded-lg border border-gray-800">
+                    <p class="text-[9px] uppercase tracking-widest text-gray-500 mb-1">
+                        Instrumento / Voz
+                    </p>
+                    <p id="perfil-rol" class="text-white text-lg font-bold">
+                        --
+                    </p>
+                </div>
+
+            </div>
+
+            <p class="text-[9px] text-gray-600 mt-6 text-center uppercase tracking-[0.2em] cursor-pointer"
+               onclick="flipCard()">
+                Ver Integrantes del Equipo →
+            </p>
+
         </div>
 
-        <div id="card-back" class="absolute top-0 w-full bg-premium p-6 rounded-2xl border border-gray-800 backface-hidden rotate-y-180 min-h-[400px]">
-            <h3 class="text-gold font-bold mb-6 uppercase text-[10px] tracking-widest">Equipo: <span id="team-name-title"></span></h3>
+        <!-- Parte trasera -->
+        <div id="card-back"
+             class="absolute top-0 w-full bg-premium p-6 rounded-2xl border border-gray-800 backface-hidden rotate-y-180 min-h-[400px]">
+
+            <h3 class="text-gold font-bold mb-6 uppercase text-[10px] tracking-widest">
+                Equipo: <span id="team-name-title"></span>
+            </h3>
+
             <div id="team-list" class="space-y-3"></div>
-            <button onclick="flipCard()" class="w-full mt-8 py-3 border border-gray-800 text-[9px] text-gray-500 uppercase tracking-widest hover:text-white transition">← Volver al Perfil</button>
-        </div>
+
+            <button onclick="flipCard()"
+                class="w-full mt-8 py-3 border border-gray-800 text-[9px] text-gray-500 uppercase tracking-widest hover:text-white transition">
+                ← Volver al Perfil
+            </button>
 
         </div>
+
+    </div>
+</div>
 
         <div id="tab-ensayos" class="hidden bg-premium p-6 rounded-2xl border border-gray-800 text-center">
     <h3 class="text-gold font-bold mb-4 uppercase text-xs">Próximos Ensayos</h3>
@@ -255,12 +290,12 @@ window.loginVoluntario = async () => {
             document.getElementById('panel-view').classList.remove('hidden');
             
             // Llenado de campos
-            document.getElementById('edit-nombre').value = currentUser.nombre || '';
-            document.getElementById('edit-nickname').value = currentUser.nickname || '';
-            document.getElementById('edit-telefono').value = currentUser.telefono || '';
-            document.getElementById('edit-email').value = currentUser.email || '';
-            document.getElementById('edit-direccion').value = currentUser.direccion || '';
-            document.getElementById('edit-rol').value = currentUser.detalle || currentUser.rol || '';
+            document.getElementById('perfil-nickname').textContent =
+    currentUser.nickname || currentUser.nombre || '-';
+
+document.getElementById('perfil-rol').textContent =
+    currentUser.detalle || currentUser.rol || '-';
+
 
             // Icono del equipo
             const icono = window.obtenerIconoPorRol(currentUser.detalle || currentUser.rol);
@@ -280,23 +315,7 @@ window.loginVoluntario = async () => {
     }
 };
 
-    document.getElementById('form-perfil').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (!currentUser) return;
 
-        try {
-            await updateDoc(doc(db, "voluntarios", currentUser.id), {
-                nombre: document.getElementById('edit-nombre').value,
-                nickname: document.getElementById('edit-nickname').value,
-                telefono: document.getElementById('edit-telefono').value,
-                direccion: document.getElementById('edit-direccion').value
-            });
-            alert("Cambios guardados exitosamente.");
-        } catch (err) {
-            console.error(err);
-            alert("Error al guardar.");
-        }
-    });
 
 // Función para girar la tarjeta
 window.flipCard = async () => {
@@ -310,45 +329,165 @@ window.flipCard = async () => {
 };
 
 async function cargarIntegrantesTeam(equipoNombre) {
+
     const listContainer = document.getElementById('team-list');
     const title = document.getElementById('team-name-title');
-    
+
     if (!equipoNombre) {
-        listContainer.innerHTML = '<p class="text-gray-500 text-xs text-center">No tienes un equipo asignado.</p>';
+        listContainer.innerHTML =
+            '<p class="text-gray-500 text-xs text-center">No tienes un equipo asignado.</p>';
         return;
     }
 
     title.innerText = equipoNombre;
-    listContainer.innerHTML = '<p class="text-gray-500 text-xs text-center">Buscando integrantes...</p>';
+    listContainer.innerHTML =
+        '<p class="text-gray-500 text-xs text-center">Buscando integrantes...</p>';
 
     try {
-        // Aseguramos que buscamos el equipo exacto
-        const q = query(collection(db, "voluntarios"), where("equipo", "==", equipoNombre));
+
+        const q = query(
+            collection(db, "voluntarios"),
+            where("equipo", "==", equipoNombre)
+        );
+
         const snap = await getDocs(q);
 
-        listContainer.innerHTML = ''; // Limpiar el "Buscando..."
-
         if (snap.empty) {
-            listContainer.innerHTML = '<p class="text-gray-500 text-xs text-center">No hay otros miembros en este equipo.</p>';
-        } else {
-            snap.forEach((doc) => {
-                const v = doc.data();
-                const icon = window.obtenerIconoPorRol(v.detalle || v.rol);
-                
-                listContainer.innerHTML += `
-                    <div class="flex items-center gap-4 bg-[#121212] p-3 rounded-lg border border-gray-800/50">
-                        <span class="text-[10px] font-bold bg-gray-900 w-10 h-10 flex items-center justify-center rounded-full border border-gray-800 text-gold">${icon}</span>
-                        <div>
-                            <p class="text-xs font-bold text-white">${v.nickname || v.nombre}</p>
-                            <p class="text-[9px] text-gray-500 uppercase">${v.detalle || v.rol || ''}</p>
-                        </div>
-                    </div>
-                `;
-            });
+            listContainer.innerHTML =
+                '<p class="text-gray-500 text-xs text-center">No hay integrantes en este equipo.</p>';
+            return;
         }
+
+        // Listas
+        const voces = [];
+        const instrumentos = [];
+
+        // Orden deseado
+        const ordenVoces = [
+            'SOPRANO',
+            'ALTO',
+            'TENOR',
+            'BARITONO',
+            'BARÍTONO',
+            'BAJO'
+        ];
+
+        const ordenInstrumentos = [
+            'PIANO',
+            'BAJO',
+            'BATERIA',
+            'BATERÍA',
+            'GUITARRA',
+            'PERCUSION',
+            'PERCUSIÓN',
+            'SAXOFON',
+            'SAXOFÓN',
+            'TROMPETA',
+            'VIOLIN',
+            'VIOLÍN',
+            'CELLO'
+        ];
+
+        snap.forEach((doc) => {
+
+            const v = doc.data();
+
+            if ((v.rol || '').toLowerCase() === 'voz') {
+                voces.push(v);
+            } else {
+                instrumentos.push(v);
+            }
+
+        });
+
+        // Ordenar voces
+        voces.sort((a, b) => {
+
+            const ia = ordenVoces.indexOf((a.detalle || '').toUpperCase());
+            const ib = ordenVoces.indexOf((b.detalle || '').toUpperCase());
+
+            return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+
+        });
+
+        // Ordenar instrumentos
+        instrumentos.sort((a, b) => {
+
+            const ia = ordenInstrumentos.indexOf((a.detalle || '').toUpperCase());
+            const ib = ordenInstrumentos.indexOf((b.detalle || '').toUpperCase());
+
+            return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+
+        });
+
+        listContainer.innerHTML = `
+
+            <div class="mb-8">
+
+                <h4 class="text-gold text-[10px] uppercase tracking-[0.2em] font-bold mb-3">
+                    Voces (${voces.length})
+                </h4>
+
+                <div class="space-y-2">
+
+                    ${
+                        voces.length
+                        ? voces.map(v => `
+                            <div class="flex items-center justify-between bg-[#121212] p-3 rounded-lg border border-gray-800/50">
+                                <div>
+                                    <p class="text-xs font-bold text-white">
+                                        ${v.nickname || v.nombre}
+                                    </p>
+                                    <p class="text-[9px] uppercase text-gray-500">
+                                        ${v.detalle}
+                                    </p>
+                                </div>
+                            </div>
+                        `).join('')
+                        : '<p class="text-gray-500 text-xs">Sin integrantes.</p>'
+                    }
+
+                </div>
+
+            </div>
+
+            <div>
+
+                <h4 class="text-gold text-[10px] uppercase tracking-[0.2em] font-bold mb-3">
+                    Instrumentos (${instrumentos.length})
+                </h4>
+
+                <div class="space-y-2">
+
+                    ${
+                        instrumentos.length
+                        ? instrumentos.map(v => `
+                            <div class="flex items-center justify-between bg-[#121212] p-3 rounded-lg border border-gray-800/50">
+                                <div>
+                                    <p class="text-xs font-bold text-white">
+                                        ${v.nickname || v.nombre}
+                                    </p>
+                                    <p class="text-[9px] uppercase text-gray-500">
+                                        ${v.detalle}
+                                    </p>
+                                </div>
+                            </div>
+                        `).join('')
+                        : '<p class="text-gray-500 text-xs">Sin integrantes.</p>'
+                    }
+
+                </div>
+
+            </div>
+
+        `;
+
     } catch (err) {
-        console.error("Error al cargar equipo:", err);
-        listContainer.innerHTML = '<p class="text-red-500 text-xs text-center">Error al cargar datos.</p>';
+
+        console.error(err);
+
+        listContainer.innerHTML =
+            '<p class="text-red-500 text-xs text-center">Error al cargar el equipo.</p>';
     }
 }
 
