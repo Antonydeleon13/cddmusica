@@ -763,77 +763,47 @@ window.cargarEnsayos = async function() {
 // Variable global
 let html5QrCode;
 
-window.iniciarEscaneoUI = async () => {
-    const readerContainer = document.getElementById('reader-container');
-    const msg = document.getElementById('mensaje-no-qr');
-    
-    msg.classList.add('hidden');
-    readerContainer.classList.remove('hidden');
+window.iniciarEscaneoUI = () => {
+    // 1. Buscamos o creamos el input oculto
+    let fileInput = document.getElementById('hidden-qr-input');
+    if (!fileInput) {
+        fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.id = 'hidden-qr-input';
+        fileInput.accept = 'image/*';
+        // ESTA LÍNEA ABRE LA CÁMARA DIRECTAMENTE EN MÓVILES
+        fileInput.setAttribute('capture', 'environment'); 
+        fileInput.style.display = 'none';
+        document.body.appendChild(fileInput);
 
-    // Limpiamos instancias previas para evitar conflictos
-    if (html5QrCode) {
-        try { await html5QrCode.stop(); } catch(e) {}
+        // 2. Lógica de procesamiento automática
+        fileInput.onchange = async (e) => {
+            if (e.target.files.length === 0) return;
+            
+            const file = e.target.files[0];
+            const qrScanner = new Html5Qrcode("reader");
+
+            try {
+                // Escaneo automático de la foto recién tomada
+                const decodedText = await qrScanner.scanFile(file, true);
+                procesarToken(decodedText);
+            } catch (err) {
+                alert("No se pudo leer el QR. Asegúrate de enfocar bien el código.");
+            }
+        };
     }
 
-    html5QrCode = new Html5Qrcode("reader");
-
-    // Configuración simplificada (sin videoConstraints complejos que bloquean móviles)
-    const config = { 
-        fps: 10, 
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0 
-    };
-
-    try {
-        // Intentar con cámara trasera primero
-        await html5QrCode.start(
-            { facingMode: "environment" }, 
-            config,
-            (decodedText) => {
-                // Éxito: detener cámara y procesar
-                html5QrCode.stop().then(() => procesarToken(decodedText));
-            },
-            () => {} // Error silenciado
-        );
-    } catch (err) {
-        console.warn("Cámara trasera falló, intentando frontal:", err);
-        // Fallback a cámara frontal
-        try {
-            await html5QrCode.start(
-                { facingMode: "user" }, 
-                config,
-                (decodedText) => {
-                    html5QrCode.stop().then(() => procesarToken(decodedText));
-                },
-                () => {}
-            );
-        } catch (e) {
-            alert("No se pudo acceder a la cámara. Revisa los permisos en el navegador.");
-        }
-    }
+    // 3. Disparamos la acción
+    fileInput.click();
 };
 
+// Lógica de navegación centralizada
 async function procesarToken(decodedText) {
-    try {
-        let token = "";
-        if (decodedText.includes("?")) {
-            const url = new URL(decodedText);
-            token = url.searchParams.get("token");
-        } else {
-            token = decodedText;
-        }
-
-        if (token) {
-            const nuevaUrl = new URL(window.location.href);
-            nuevaUrl.searchParams.set("token", token);
-            window.history.pushState({}, '', nuevaUrl);
-            await window.mostrarTab('asistencia');
-        } else {
-            alert("QR detectado pero no es un token válido");
-        }
-    } catch(e) {
-        alert("Error procesando QR: " + e.message);
-    }
+    let token = decodedText.includes("?") ? new URL(decodedText).searchParams.get("token") : decodedText;
+    const nuevaUrl = new URL(window.location.href);
+    nuevaUrl.searchParams.set("token", token);
+    window.history.pushState({}, '', nuevaUrl);
+    await window.mostrarTab('asistencia');
 }
 
 window.cerrarEscaneo = () => {
