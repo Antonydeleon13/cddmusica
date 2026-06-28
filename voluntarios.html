@@ -769,7 +769,7 @@ window.iniciarEscaneoUI = () => {
                 // DETENER CÁMARA ANTES DE NAVEGAR
                 html5QrCode.stop().then(() => {
                     // AQUÍ ESTÁ EL CAMBIO: Usamos replace para asegurar el recargo
-                    window.location.href = window.location.pathname + `?token=${token}`;
+                    window.location.href = window.location.origin + window.location.pathname + `?token=${token}`;
                 }).catch(err => console.log(err));
             } else {
                 alert("QR detectado, pero no contiene un token válido.");
