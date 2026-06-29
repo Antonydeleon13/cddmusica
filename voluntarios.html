@@ -11,6 +11,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Deepartment">
 <script src="https://unpkg.com/html5-qrcode"></script>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
 
 <link rel="apple-touch-icon" href="./icon.png">
 
@@ -83,10 +85,12 @@
 
    <div id="panel-view" class="hidden p-6 mx-auto w-full max-w-md md:max-w-4xl">
     
-    <div class="flex justify-between items-center mb-8">
-        <img src="logodeep.png" class="h-8 w-auto brightness-0 invert">
-        <button onclick="cerrarSesion()" class="text-[9px] uppercase tracking-[0.2em] text-gray-600 hover:text-white transition">Salir</button>
-    </div>
+    <div class="flex justify-end items-center mb-8">
+    <button onclick="cerrarSesion()"
+        class="text-[9px] uppercase tracking-[0.2em] text-gray-600 hover:text-white transition">
+        Salir
+    </button>
+</div>
 
    <div class="flex justify-center gap-6 mb-8" id="tabs-nav">
     <button onclick="mostrarTab('perfil')" class="text-[10px] uppercase tracking-widest text-gold border-b border-gold pb-1">Perfil</button>
@@ -100,47 +104,63 @@
     <div id="card-inner" class="relative w-full transition-transform duration-700 transform-style-3d">
 
         <!-- Frente -->
-        <div id="card-front" class="w-full bg-premium p-6 rounded-2xl border border-gray-800 backface-hidden">
+        <!-- Frente -->
+<div id="card-front" class="w-full bg-premium p-8 rounded-2xl border border-gray-800 backface-hidden flex flex-col items-center text-center">
 
-            <!-- TEAM -->
-            <div id="team-badge"
-                class="text-center text-gold font-black uppercase tracking-[0.2em]
-                       text-2xl md:text-5xl my-10 cursor-pointer hover:opacity-80 transition-opacity"
-                onclick="flipCard()">
-                Cargando...
-            </div>
+    <!-- Logo -->
+    <img src="logodeep.png"
+         class="h-14 w-auto brightness-0 invert opacity-90 mb-10">
 
-            <!-- Información -->
-            <div class="space-y-4 mt-8">
+    <!-- Bienvenida -->
+    <p class="text-[10px] uppercase tracking-[0.35em] text-gray-500">
+        Bienvenido
+    </p>
 
-                <!-- Nickname -->
-                <div class="bg-[#161616] p-4 rounded-lg border border-gray-800">
-                    <p class="text-[9px] uppercase tracking-widest text-gray-500 mb-1">
-                        Nombre
-                    </p>
-                    <p id="perfil-nickname" class="text-white text-lg font-bold">
-                        --
-                    </p>
-                </div>
+    <h2 id="perfil-nickname"
+        class="mt-3 text-3xl font-light text-white">
+        --
+    </h2>
 
-                <!-- Instrumento / Voz -->
-                <div class="bg-[#161616] p-4 rounded-lg border border-gray-800">
-                    <p class="text-[9px] uppercase tracking-widest text-gray-500 mb-1">
-                        Instrumento / Voz
-                    </p>
-                    <p id="perfil-rol" class="text-white text-lg font-bold">
-                        --
-                    </p>
-                </div>
+    <!-- Team -->
+    <div id="team-badge"
+    class="mt-10 text-gold uppercase
+           text-7xl
+           leading-none
+           cursor-pointer
+           hover:opacity-80
+           transition-all duration-300"
+    style="
+        font-family:'Bebas Neue', sans-serif;
+        letter-spacing:0.02em;
+        transform:scaleY(1.08);
+    "
+    onclick="flipCard()">
+</div>
 
-            </div>
+    <!-- Instrumento -->
+    <p id="perfil-rol"
+       class="mt-4 text-gray-500 uppercase tracking-[0.25em] text-xs">
+        --
+    </p>
 
-            <p class="text-[9px] text-gray-600 mt-6 text-center uppercase tracking-[0.2em] cursor-pointer"
-               onclick="flipCard()">
-                Ver Integrantes del Equipo →
-            </p>
+    <!-- Mensaje -->
+    <div class="mt-12 max-w-xs">
 
-        </div>
+        <p class="text-gray-300 leading-7 text-sm">
+            Gracias por formar parte del equipo de alabanza.
+            Tu servicio, compromiso y excelencia ayudan a crear
+            un ambiente donde las personas pueden encontrarse con Dios.
+        </p>
+
+    </div>
+
+    <!-- Botón -->
+    <button onclick="flipCard()"
+        class="mt-12 text-[10px] uppercase tracking-[0.35em] text-gray-500 hover:text-gold transition">
+        Ver integrantes del equipo →
+    </button>
+
+</div>
 
         <!-- Parte trasera -->
         <div id="card-back"
@@ -298,8 +318,8 @@ document.getElementById('perfil-rol').textContent =
 
 
             // Icono del equipo
-            const icono = window.obtenerIconoPorRol(currentUser.detalle || currentUser.rol);
-            document.getElementById('team-badge').innerHTML = `${icono} ${currentUser.equipo || 'Sin equipo asignado'}`;
+            document.getElementById('team-badge').textContent =
+            currentUser.equipo || 'SIN EQUIPO';
             
             // --- AUTO-CARGA: Traemos el setlist al entrar ---
             if (typeof cargarSetlist === 'function') {
