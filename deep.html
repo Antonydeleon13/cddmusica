@@ -1920,6 +1920,19 @@ if (vista === "asistencia") {
     window.generarVistaAsistencia();
     return;
 }
+
+ else if (vista === 'setlist') {
+    contenedor.innerHTML = `
+        <div id="editor-setlist"></div>
+
+        <div class="mt-8">
+            <div id="lista-setlists-guardados"></div>
+        </div>
+    `;
+
+    cargarSetlist();
+    cargarSetlistsGuardados();
+}
 }
 
 
@@ -1930,31 +1943,48 @@ window.generarVistaAsistencia = function () {
 
     contenedor.innerHTML = `
 <div class="space-y-8">
-    <div class="flex justify-between items-center">
+    <div class="flex justify-between items-start">
         <div>
-            <h2 class="text-3xl font-bold text-white">Asistencia</h2>
-            <p class="text-gray-500 mb-4">Control de asistencias del departamento</p>
+            <h2 class="text-3xl font-bold text-white">
+                Asistencia
+            </h2>
+            <p class="text-gray-500 mt-1 mb-5">
+                Control de asistencias del departamento
+            </p>
             
-            <div class="inline-flex bg-[#161616] rounded-xl p-1 border border-gray-800">
-                <button id="tab-hoy" onclick="mostrarTabAsistencia('hoy')" class="px-6 py-2 rounded-lg bg-yellow-500 text-black font-semibold transition">
+            <div class="inline-flex bg-[#161616] border border-gray-800 rounded-xl p-1">
+                <button
+                    id="tab-hoy"
+                    onclick="mostrarTabAsistencia('hoy')"
+                    class="px-6 py-2 rounded-lg bg-yellow-500 text-black font-semibold transition">
                     Hoy
                 </button>
-                <button id="tab-historial" onclick="mostrarTabAsistencia('historial')" class="px-6 py-2 rounded-lg text-gray-400 hover:text-white transition">
+                <button
+                    id="tab-historial"
+                    onclick="mostrarTabAsistencia('historial')"
+                    class="px-6 py-2 rounded-lg text-gray-400 hover:text-white transition">
                     Historial
                 </button>
-                <button id="tab-estadisticas" onclick="mostrarTabAsistencia('estadisticas')" class="px-6 py-2 rounded-lg text-gray-400 hover:text-white transition">
+                <button
+                    id="tab-estadisticas"
+                    onclick="mostrarTabAsistencia('estadisticas')"
+                    class="px-6 py-2 rounded-lg text-gray-400 hover:text-white transition">
                     Estadísticas
                 </button>
             </div>
         </div>
 
-        <div class="flex items-center gap-4">
-            <select id="tipo-evento-qr" class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white">
+        <div id="panel-acciones-qr" class="flex items-center gap-4">
+            <select
+                id="tipo-evento-qr"
+                class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500">
                 <option value="ENSAYO">Ensayo</option>
                 <option value="SOUNDCHECK">Soundcheck</option>
                 <option value="SERVICIO GENERAL">Servicio General</option>
             </select>
-            <button onclick="generarQR()" class="bg-yellow-500 hover:bg-yellow-400 text-black px-6 py-3 rounded-lg font-bold">
+            <button
+                onclick="generarQR()"
+                class="bg-yellow-500 hover:bg-yellow-400 text-black px-6 py-3 rounded-lg font-bold transition">
                 Generar QR
             </button>
         </div>
@@ -1962,247 +1992,522 @@ window.generarVistaAsistencia = function () {
 
     <div id="contenido-hoy" class="space-y-8">
         <div class="grid grid-cols-3 gap-5">
-            <div class="bg-[#161616] rounded-xl p-6">
-                <p class="text-xs text-gray-500 uppercase">Presentes</p>
-                <h2 id="total-presentes" class="text-4xl font-bold text-green-400">0</h2>
+            <div class="bg-[#161616] rounded-xl p-6 border border-gray-800/50">
+                <p class="text-xs text-gray-500 uppercase tracking-wider">Presentes</p>
+                <h2 id="total-presentes" class="text-4xl font-bold text-green-400 mt-1">0</h2>
             </div>
-            <div class="bg-[#161616] rounded-xl p-6">
-                <p class="text-xs text-gray-500 uppercase">Ausentes</p>
-                <h2 id="total-ausentes" class="text-4xl font-bold text-red-400">0</h2>
+            <div class="bg-[#161616] rounded-xl p-6 border border-gray-800/50">
+                <p class="text-xs text-gray-500 uppercase tracking-wider">Ausentes</p>
+                <h2 id="total-ausentes" class="text-4xl font-bold text-red-400 mt-1">0</h2>
             </div>
-            <div class="bg-[#161616] rounded-xl p-6">
-                <p class="text-xs text-gray-500 uppercase">Asistencia</p>
-                <h2 id="porcentaje-asistencia" class="text-4xl font-bold text-yellow-400">0%</h2>
+            <div class="bg-[#161616] rounded-xl p-6 border border-gray-800/50">
+                <p class="text-xs text-gray-500 uppercase tracking-wider">Asistencia</p>
+                <h2 id="porcentaje-asistencia" class="text-4xl font-bold text-yellow-400 mt-1">0%</h2>
             </div>
         </div>
 
-        <div class="bg-[#161616] rounded-xl p-8">
-            <p class="text-center text-gray-400 uppercase text-xs mb-3">Evento activo</p>
-            <h2 id="evento-activo" class="text-center text-2xl font-bold text-yellow-400 mb-6">--</h2>
-            <div id="qrcode" class="flex justify-center"></div>
+        <div class="bg-[#161616] rounded-xl p-10 border border-gray-800/50">
+            <p class="text-center text-gray-500 uppercase tracking-[0.2em] text-xs mb-4">
+                Evento activo
+            </p>
+            <h2 id="evento-activo" class="text-center text-3xl font-bold text-yellow-400 mb-8">
+                —
+            </h2>
+            
+            <div id="qrcode" class="mx-auto flex flex-col items-center justify-center min-h-[250px]">
+                <p id="qr-placeholder-text" class="text-gray-500 text-sm tracking-wide text-center">
+                    No hay ningún evento activo. Presiona <span class="text-yellow-400 font-semibold">Generar QR</span> para empezar.
+                </p>
+            </div>
         </div>
+
+       <div class="mt-12">
+
+    <div class="flex items-center justify-between mb-6">
 
         <div>
-            <h3 class="text-xl font-bold text-white mb-4">Asistencia en vivo</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-white">
-                    <thead>
-                        <tr class="border-b border-gray-700">
-                            <th class="text-left p-3">Nombre</th>
-                            <th class="text-left p-3">Hora</th>
-                            <th class="text-left p-3">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-asistencia-body"></tbody>
-                </table>
-            </div>
+
+            <h3 class="text-2xl font-bold text-white">
+                Asistencia en vivo
+            </h3>
+
+            <p class="text-gray-500 text-sm mt-1">
+                Personas registradas durante el evento actual.
+            </p>
+
         </div>
+
+        <span class="text-xs uppercase tracking-widest text-green-400">
+            En tiempo real
+        </span>
+
+    </div>
+
+    <div class="overflow-hidden rounded-2xl border border-gray-800 bg-[#161616]">
+
+        <table class="w-full text-white">
+
+            <thead class="bg-[#1b1b1b]">
+
+                <tr>
+
+                    <th class="text-left px-6 py-4 font-semibold text-gray-400">
+                        Nombre
+                    </th>
+
+                    <th class="text-left px-6 py-4 font-semibold text-gray-400">
+                        Hora
+                    </th>
+
+                    <th class="text-right px-6 py-4 font-semibold text-gray-400">
+                        Estado
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody
+                id="tabla-asistencia-body"
+                class="divide-y divide-gray-800">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
     </div>
 
     <div id="contenido-historial" class="hidden space-y-6">
-        <div>
-            <h2 class="text-2xl font-bold text-white mb-6">Historial de asistencias</h2>
-            
-            <div class="flex flex-wrap gap-4 mb-6">
-                <input id="filtro-fecha" type="date" class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white">
-                
-                <select id="filtro-evento" class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white">
-                    <option value="">Todos los eventos</option>
-                    <option value="ENSAYO">Ensayo</option>
-                    <option value="SOUNDCHECK">Soundcheck</option>
-                    <option value="SERVICIO GENERAL">Servicio General</option>
-                </select>
+        <h2 class="text-2xl font-bold text-white">
+            Historial de asistencias
+        </h2>
 
-                <select id="filtro-mes" class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white">
-                    <option value="">Todos los meses</option>
-                    <option value="1">Enero</option>
-                    <option value="2">Febrero</option>
-                    <option value="3">Marzo</option>
-                    <option value="4">Abril</option>
-                    <option value="5">Mayo</option>
-                    <option value="6">Junio</option>
-                    <option value="7">Julio</option>
-                    <option value="8">Agosto</option>
-                    <option value="9">Septiembre</option>
-                    <option value="10">Octubre</option>
-                    <option value="11">Noviembre</option>
-                    <option value="12">Diciembre</option>
-                </select>
+        <div class="flex flex-wrap gap-4">
+           <input
+    id="filtro-fecha"
+    type="text"
+    readonly
+    class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white cursor-pointer">
 
-                <button onclick="cargarHistorialAsistencia()" class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-6 rounded-lg">
-                    Buscar
-                </button>
-            </div>
+            <select
+                id="filtro-evento"
+                class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500">
+                <option value="">Todos los eventos</option>
+                <option value="ENSAYO">Ensayo</option>
+                <option value="SOUNDCHECK">Soundcheck</option>
+                <option value="SERVICIO GENERAL">Servicio General</option>
+            </select>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-white">
-                    <thead>
-                        <tr class="border-b border-gray-700">
-                            <th class="text-left p-3">Nombre</th>
-                            <th class="text-left p-3">Fecha</th>
-                            <th class="text-left p-3">Hora</th>
-                            <th class="text-left p-3">Evento</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-asistencia-historial"></tbody>
-                </table>
-            </div>
+            <select
+                id="filtro-mes"
+                class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500">
+                <option value="">Todos los meses</option>
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+            </select>
+
+            <button
+                onclick="cargarHistorialAsistencia()"
+                class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-6 rounded-lg transition">
+                Buscar
+            </button>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-gray-800 bg-[#161616]">
+            <table class="w-full text-white">
+                <thead>
+                    <tr class="border-b border-gray-800 bg-[#1f1f1f]/50">
+                        <th class="text-left p-4 font-semibold text-gray-400">Nombre</th>
+                        <th class="text-left p-4 font-semibold text-gray-400">Fecha</th>
+                        <th class="text-left p-4 font-semibold text-gray-400">Hora</th>
+                        <th class="text-left p-4 font-semibold text-gray-400">Evento</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-asistencia-historial" class="divide-y divide-gray-800/50">
+                    </tbody>
+            </table>
         </div>
     </div>
 
-    <div id="contenido-estadisticas" class="hidden space-y-6">
-        <div>
-            <h2 class="text-2xl font-bold text-white mb-4">Estadísticas de Asistencia</h2>
-            <p class="text-gray-400">Aquí puedes renderizar tus gráficos o reportes consolidados.</p>
-        </div>
+    <div id="contenido-estadisticas" class="hidden space-y-8">
+
+    <div>
+
+        <h2 class="text-2xl font-bold text-white">
+            Estadísticas
+        </h2>
+
+        <p class="text-gray-500 mt-1">
+            Analiza la asistencia utilizando filtros avanzados.
+        </p>
+
     </div>
+
+    <div class="grid lg:grid-cols-5 gap-4">
+
+        <input
+            id="estadistica-desde"
+            type="date"
+            class="bg-[#161616] border border-gray-700 rounded-xl p-3 text-white">
+
+        <input
+            id="estadistica-hasta"
+            type="date"
+            class="bg-[#161616] border border-gray-700 rounded-xl p-3 text-white">
+
+        <select
+            id="estadistica-evento"
+            class="bg-[#161616] border border-gray-700 rounded-xl p-3 text-white">
+
+            <option value="">Todos los eventos</option>
+            <option value="ENSAYO">Ensayo</option>
+            <option value="SOUNDCHECK">Soundcheck</option>
+            <option value="SERVICIO GENERAL">Servicio General</option>
+
+        </select>
+
+        <select
+            id="estadistica-team"
+            class="bg-[#161616] border border-gray-700 rounded-xl p-3 text-white">
+
+            <option value="">Todos los teams</option>
+            <option value="TEAM 1">TEAM 1</option>
+            <option value="TEAM 2">TEAM 2</option>
+            <option value="TEAM 3">TEAM 3</option>
+             <option value="TEAM 4">TEAM 4</option>
+
+        </select>
+
+        <button
+            onclick="cargarEstadisticas()"
+            class="bg-yellow-500 hover:bg-yellow-400 rounded-xl text-black font-bold">
+
+            Actualizar
+
+        </button>
+
+    </div>
+
+    <div class="grid md:grid-cols-4 gap-5">
+
+        <div class="bg-[#161616] rounded-xl p-6">
+
+            <div class="text-xs uppercase text-gray-500">
+                Asistencias
+            </div>
+
+            <div id="estad-total"
+                class="text-4xl font-bold text-white mt-2">
+
+                0
+
+            </div>
+
+        </div>
+
+        <div class="bg-[#161616] rounded-xl p-6">
+
+            <div class="text-xs uppercase text-gray-500">
+                Promedio
+            </div>
+
+            <div id="estad-promedio"
+                class="text-4xl font-bold text-green-400 mt-2">
+
+                0%
+
+            </div>
+
+        </div>
+
+        <div class="bg-[#161616] rounded-xl p-6">
+
+            <div class="text-xs uppercase text-gray-500">
+                Eventos
+            </div>
+
+            <div id="estad-eventos"
+                class="text-4xl font-bold text-yellow-400 mt-2">
+
+                0
+
+            </div>
+
+        </div>
+
+        <div class="bg-[#161616] rounded-xl p-6">
+
+            <div class="text-xs uppercase text-gray-500">
+                Voluntarios
+            </div>
+
+            <div id="estad-voluntarios"
+                class="text-4xl font-bold text-sky-400 mt-2">
+
+                0
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6">
+
+        <div class="bg-[#161616] rounded-xl p-6">
+
+            <h3 class="text-white font-bold mb-5">
+
+                Asistencia por fecha
+
+            </h3>
+
+            <canvas id="grafica-asistencia"></canvas>
+
+        </div>
+
+        <div class="bg-[#161616] rounded-xl p-6">
+
+            <h3 class="text-white font-bold mb-5">
+
+                Eventos
+
+            </h3>
+
+            <canvas id="grafica-eventos"></canvas>
+
+        </div>
+
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6">
+
+        <div class="bg-[#161616] rounded-xl p-6">
+
+            <h3 class="text-white font-bold mb-4">
+
+                Mayor asistencia
+
+            </h3>
+
+            <div id="ranking-top"></div>
+
+        </div>
+
+        <div class="bg-[#161616] rounded-xl p-6">
+
+            <h3 class="text-white font-bold mb-4">
+
+                Menor asistencia
+
+            </h3>
+
+            <div id="ranking-bottom"></div>
+
+        </div>
+
+    </div>
+
 </div>
 `;
 
-    // Ejecuciones iniciales de carga de datos
-    generarQR();
-cargarAsistenciaHoy();
-
+    // 1. Configurar valores por defecto del DOM antes de gatillar consultas
 const filtroFecha = document.getElementById("filtro-fecha");
-if (filtroFecha) {
-    filtroFecha.value = new Date().toISOString().split("T")[0];
-}
-
-mostrarTabAsistencia("hoy");
+    if (filtroFecha) {
+        const hoy = new Date();
+        filtroFecha.dataset.fecha = hoy.toISOString().split("T")[0];
+        filtroFecha.value = hoy.toISOString().split("T")[0];
+    }
+    mostrarTabAsistencia("hoy");
+    cargarQREventoActivo();
+    cargarAsistenciaHoy();
 };
 
 
 
 window.mostrarTabAsistencia = function(tab){
-
     const hoy = document.getElementById("contenido-hoy");
     const historial = document.getElementById("contenido-historial");
     const estadisticas = document.getElementById("contenido-estadisticas");
-
     hoy.classList.add("hidden");
     historial.classList.add("hidden");
     estadisticas.classList.add("hidden");
-
-    document.getElementById("tab-hoy").className =
-        "px-6 py-2 rounded-lg text-gray-400 hover:text-white transition";
-
-    document.getElementById("tab-historial").className =
-        "px-6 py-2 rounded-lg text-gray-400 hover:text-white transition";
-
-    document.getElementById("tab-estadisticas").className =
-        "px-6 py-2 rounded-lg text-gray-400 hover:text-white transition";
-
+    document.getElementById("tab-hoy").className = "px-6 py-2 rounded-lg text-gray-400 hover:text-white transition";
+    document.getElementById("tab-historial").className = "px-6 py-2 rounded-lg text-gray-400 hover:text-white transition";
+    document.getElementById("tab-estadisticas").className = "px-6 py-2 rounded-lg text-gray-400 hover:text-white transition";
     if(tab==="hoy"){
-
         hoy.classList.remove("hidden");
-
-        document.getElementById("tab-hoy").className =
-        "px-6 py-2 rounded-lg bg-yellow-500 text-black font-bold";
-
+        document.getElementById("tab-hoy").className = "px-6 py-2 rounded-lg bg-yellow-500 text-black font-bold";
     }
-
     if(tab==="historial"){
-
         historial.classList.remove("hidden");
-
-        document.getElementById("tab-historial").className =
-        "px-6 py-2 rounded-lg bg-yellow-500 text-black font-bold";
-
+        document.getElementById("tab-historial").className = "px-6 py-2 rounded-lg bg-yellow-500 text-black font-bold";
         cargarHistorialAsistencia();
-
     }
-
     if(tab==="estadisticas"){
-
         estadisticas.classList.remove("hidden");
-
-        document.getElementById("tab-estadisticas").className =
-        "px-6 py-2 rounded-lg bg-yellow-500 text-black font-bold";
-
+        document.getElementById("tab-estadisticas").className = "px-6 py-2 rounded-lg bg-yellow-500 text-black font-bold";
     }
-
 };
+
+
+
 
 
 window.cargarHistorialAsistencia = async function () {
-
     const tabla = document.getElementById("tabla-asistencia-historial");
-
     if (!tabla) return;
-
-    tabla.innerHTML = `
-        <tr>
-            <td colspan="4" class="p-4 text-center text-gray-500">
-                Cargando historial...
-            </td>
-        </tr>
-    `;
-
-    const fecha = document.getElementById("filtro-fecha")?.value || "";
-    const evento = document.getElementById("filtro-evento")?.value || "";
-    const mes = document.getElementById("filtro-mes")?.value || "";
-
-    let consulta = window.collection(window.db, "asistencia");
-
-    const snapshot = await window.getDocs(consulta);
-
+    tabla.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">Cargando historial...</td></tr>`;
+    const inputFecha = document.getElementById("filtro-fecha");
+    const selectEvento = document.getElementById("filtro-evento");
+    const selectMes = document.getElementById("filtro-mes");
+    const fecha = inputFecha?.dataset.fecha || "";
+    const evento = selectEvento?.value || "";
+    const mes = selectMes?.value || "";
+    const snapshot = await window.getDocs(window.collection(window.db, "asistencia"));
     tabla.innerHTML = "";
-
-    snapshot.forEach(doc => {
-
-        const data = doc.data();
-
-        if (fecha && data.fecha !== fecha) return;
-
-        if (evento && data.tipoEvento !== evento) return;
-
-        if (mes) {
-
-            const m = Number(data.fecha.split("-")[1]);
-
-            if (m != Number(mes)) return;
-
-        }
-
-        tabla.innerHTML += `
-
-<tr class="border-b border-gray-800 hover:bg-white/5">
-
-    <td class="p-3">
-        ${data.nickname || data.nombreVoluntario}
-    </td>
-
-    <td class="p-3">
-        ${data.fecha}
-    </td>
-
-    <td class="p-3">
-        ${data.hora}
-    </td>
-
-    <td class="p-3">
-        ${data.tipoEvento}
-    </td>
-
-</tr>
-
-`;
-
-    });
-
-    if (tabla.innerHTML === "") {
-
-        tabla.innerHTML = `
-            <tr>
-                <td colspan="4" class="p-4 text-center text-gray-500">
-                    No se encontraron registros.
-                </td>
-            </tr>
-        `;
-
-    }
-
+    let registros = [];
+    snapshot.forEach(doc => { registros.push(doc.data()); });
+    if (fecha !== "") { registros = registros.filter(r => r.fecha === fecha); }
+    if (evento !== "") { registros = registros.filter(r => r.tipoEvento === evento); }
+    if (mes !== "") { registros = registros.filter(r => { const numeroMes = Number(r.fecha.split("-")[1]); return numeroMes === Number(mes); }); }
+    registros.sort((a, b) => { const fechaA = `${a.fecha} ${a.hora}`; const fechaB = `${b.fecha} ${b.hora}`; return new Date(fechaB) - new Date(fechaA); });
+    registros.forEach(data => { tabla.insertAdjacentHTML("beforeend", `<tr class="border-b border-gray-800 hover:bg-white/5"><td class="p-3">${data.nickname || data.nombreVoluntario}</td><td class="p-3">${data.fecha}</td><td class="p-3">${data.hora}</td><td class="p-3">${data.tipoEvento}</td></tr>`); });
+    if (registros.length === 0) { tabla.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">No se encontraron registros.</td></tr>`; }
 };
+
+
+
+
+
+window.cargarEstadisticas = async function () {
+    const snapshot = await window.getDocs(window.collection(window.db, "asistencia"));
+    const voluntariosSnap = await window.getDocs(window.collection(window.db, "voluntarios"));
+    const fechaInicio = document.getElementById("estadistica-desde")?.value || "";
+    const fechaFin = document.getElementById("estadistica-hasta")?.value || "";
+    const evento = document.getElementById("estadistica-evento")?.value || "";
+    const team = document.getElementById("estadistica-team")?.value || "";
+    let totalVoluntarios = 0;
+    for (const doc of voluntariosSnap.docs) {
+        const vData = doc.data();
+        if (team && vData.equipo !== team) continue;
+        totalVoluntarios++;
+    }
+    const registros = [];
+    for (const doc of snapshot.docs) {
+        const data = doc.data();
+        if (fechaInicio && data.fecha < fechaInicio) continue;
+        if (fechaFin && data.fecha > fechaFin) continue;
+        if (evento && data.tipoEvento !== evento) continue;
+        if (team && data.equipo !== team) continue;
+        registros.push(data);
+    }
+    const eventos = new Set();
+    const voluntarios = new Set();
+    const conteoFechas = {};
+    const conteoEventos = {};
+    const conteoPersonas = {};
+    registros.forEach(data => {
+        if (data.fecha) { conteoFechas[data.fecha] = (conteoFechas[data.fecha] || 0) + 1; }
+        if (data.tipoEvento) {
+            eventos.add(`${data.tipoEvento}_${data.fecha}`);
+            conteoEventos[data.tipoEvento] = (conteoEventos[data.tipoEvento] || 0) + 1;
+        }
+        const persona = data.nickname || data.nombreVoluntario;
+        if (persona) {
+            voluntarios.add(persona);
+            conteoPersonas[persona] = (conteoPersonas[persona] || 0) + 1;
+        }
+    });
+    const totalAsistencias = registros.length;
+    const promedio = totalVoluntarios > 0 ? Math.round((voluntarios.size / totalVoluntarios) * 100) : 0;
+    document.getElementById("estad-total").textContent = totalAsistencias;
+    document.getElementById("estad-promedio").textContent = (promedio > 100 ? 100 : promedio) + "%";
+    document.getElementById("estad-eventos").textContent = eventos.size;
+    document.getElementById("estad-voluntarios").textContent = voluntarios.size;
+    const ctx1 = document.getElementById("grafica-asistencia")?.getContext("2d");
+    if (ctx1) {
+        if (window.chartAsistencia) window.chartAsistencia.destroy();
+        const fechas = Object.keys(conteoFechas).sort();
+        const gradient = ctx1.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(245, 158, 11, 0.28)');
+        gradient.addColorStop(1, 'rgba(245, 158, 11, 0)');
+        window.chartAsistencia = new Chart(ctx1, {
+            type: "line",
+            data: {
+                labels: fechas,
+                datasets: [{
+                    label: "Asistencias",
+                    data: fechas.map(f => conteoFechas[f]),
+                    borderColor: "#ffd95a",
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    pointBackgroundColor: "#ffd95a",
+                    pointBorderColor: "#050505",
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: .4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0, color: "#737373", font: { size: 11 } }, grid: { color: "rgba(255,255,255,.04)" } },
+                    x: { ticks: { color: "#737373", font: { size: 11 } }, grid: { display: false } }
+                }
+            }
+        });
+    }
+    const ctx2 = document.getElementById("grafica-eventos")?.getContext("2d");
+    if (ctx2) {
+        if (window.chartEventos) window.chartEventos.destroy();
+        window.chartEventos = new Chart(ctx2, {
+            type: "doughnut",
+            data: {
+                labels: Object.keys(conteoEventos),
+                datasets: [{
+                    data: Object.values(conteoEventos),
+                    backgroundColor: ["#ffd95a", "#a78bfa", "#38bdf8", "#4ade80", "#f87171"],
+                    borderColor: "#161616",
+                    borderWidth: 3,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: "75%",
+                plugins: { legend: { position: "bottom", labels: { color: "#a3a3a3", padding: 20, boxWidth: 12, boxHeight: 12, font: { size: 12 } } } }
+            }
+        });
+    }
+    const ranking = Object.entries(conteoPersonas).sort((a, b) => b[1] - a[1]);
+    const top = document.getElementById("ranking-top");
+    const bottom = document.getElementById("ranking-bottom");
+    if (ranking.length === 0) {
+        top.innerHTML = `<div class="text-center py-6 text-gray-600 text-xs italic">No hay registros de asistencias disponibles.</div>`;
+        bottom.innerHTML = `<div class="text-center py-6 text-gray-600 text-xs italic">No hay registros de asistencias disponibles.</div>`;
+    } else {
+        top.innerHTML = ranking.slice(0, 5).map(([nombre, veces], i) => `<div class="flex justify-between items-center py-3 border-b border-gray-800/60 hover:bg-white/[0.02] px-2 rounded-lg transition-colors"><div class="flex items-center gap-3"><span class="text-gray-600 font-bold text-[11px] w-4">#${i+1}</span><span class="text-gray-200 font-medium">${nombre}</span></div><span class="bg-green-500/10 text-green-400 font-bold px-2.5 py-0.5 rounded text-[11px]">${veces} asist.</span></div>`).join("");
+        bottom.innerHTML = [...ranking].reverse().slice(0, 5).map(([nombre, veces], i) => `<div class="flex justify-between items-center py-3 border-b border-gray-800/60 hover:bg-white/[0.02] px-2 rounded-lg transition-colors"><div class="flex items-center gap-3"><span class="text-gray-600 font-bold text-[11px] w-4">#${i+1}</span><span class="text-gray-200 font-medium">${nombre}</span></div><span class="bg-red-500/10 text-red-400 font-bold px-2.5 py-0.5 rounded text-[11px]">${veces} asist.</span></div>`).join("");
+    }
+};
+
 
 
 
@@ -3330,6 +3635,66 @@ if (eventoActivo) {
 
 };
 
+
+
+
+window.cargarQREventoActivo = async function () {
+
+    const qr = document.getElementById("qrcode");
+    const evento = document.getElementById("evento-activo");
+
+    if (!qr || !evento) return;
+
+    const snap = await window.getDoc(
+        window.doc(window.db, "tokens", "diario")
+    );
+
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+
+    const hoy = new Date().toISOString().split("T")[0];
+
+    if (data.fecha !== hoy) return;
+
+    evento.textContent = data.tipoEvento;
+
+    evento.classList.remove(
+        "text-yellow-400",
+        "text-violet-400",
+        "text-sky-400"
+    );
+
+    if (data.tipoEvento === "ENSAYO") {
+        evento.classList.add("text-yellow-400");
+    }
+
+    if (data.tipoEvento === "SOUNDCHECK") {
+        evento.classList.add("text-violet-400");
+    }
+
+    if (data.tipoEvento === "SERVICIO GENERAL") {
+        evento.classList.add("text-sky-400");
+    }
+
+    qr.innerHTML = "";
+
+    const url =
+        `https://antonydeleon13.github.io/cddmusica/voluntarios.html?fecha=${data.fecha}&token=${data.token}`;
+
+    new QRCode(qr, {
+        text: url,
+        width: 220,
+        height: 220,
+        colorDark: "#ffffff",
+        colorLight: "#050505"
+    });
+
+};
+
+
+
+
    // --- 3. LECTURA DE ASISTENCIA (TIEMPO REAL) ---
 window.cargarAsistenciaHoy = async function () {
 
@@ -3377,21 +3742,17 @@ window.cargarAsistenciaHoy = async function () {
 
     const asistenciaRef = window.collection(window.db, "asistencia");
 
-    const inputFecha = document.getElementById("filtro-fecha");
+   const inputFecha = document.getElementById("filtro-fecha");
 const selectEvento = document.getElementById("filtro-evento");
 const selectMes = document.getElementById("filtro-mes");
 
-const fechaSeleccionada = inputFecha
-    ? inputFecha.value
-    : new Date().toISOString().split("T")[0];
+const fechaSeleccionada =
+    inputFecha?.dataset?.fecha ||
+    inputFecha?.value ||
+    new Date().toISOString().split("T")[0];
 
-const eventoSeleccionado = selectEvento
-    ? selectEvento.value
-    : "";
-
-const mesSeleccionado = selectMes
-    ? selectMes.value
-    : "";
+const eventoSeleccionado = selectEvento?.value || "";
+const mesSeleccionado = selectMes?.value || "";
 
     let q;
 
@@ -3545,31 +3906,22 @@ console.log({
     tipoEvento
 });
             // USAMOS LA SINTAXIS MODULAR V9:
-        await addDoc(collection(db, "asistencia"), {
-    PRUEBA_CHATGPT: "SI APAREZCO, ESTA ES LA FUNCION CORRECTA",
-
+      await addDoc(collection(db, "asistencia"), {
     nombreVoluntario: currentUser.nombre,
     nickname: currentUser.nickname || "",
     email: currentUser.email,
-
     equipo: currentUser.equipo || "",
     rol: currentUser.rol || "",
     detalle: currentUser.detalle || "",
-
     tipoEvento: tipoEvento,
-
     fecha: hoy,
-hora: hora,
-
-mes: new Date().getMonth()+1,
-anio: new Date().getFullYear(),
-
+    hora: hora,
+    mes: new Date().getMonth() + 1,
+    anio: new Date().getFullYear(),
     estado: "Presente",
     tipoRegistro: "QR",
-
     timestamp: new Date()
-});
-            
+});       
             window.cerrarModal();
             console.log("Registro guardado con éxito");
         } catch (err) {
@@ -3640,9 +3992,8 @@ window.confirmarRegistro = confirmarRegistro;
 
             <select id="ensayo-tipo" required class="w-full p-3 bg-[#0d0d0d] border border-gray-800 text-white rounded focus:border-gold outline-none transition">
     <option value="Ensayo">Ensayo</option>
-    <option value="Servicio General">Servicio General</option>
-    <option value="Ensayo de Equipo">Ensayo de Equipo</option>
     <option value="Soundcheck">Soundcheck</option>
+    <option value="Servicio General">Servicio General</option>
 </select>
 
             <div class="grid grid-cols-2 gap-4">
