@@ -162,8 +162,8 @@
     </div>
 </div>
 
-        <div id="tab-ensayos" class="hidden bg-premium p-6 rounded-2xl border border-gray-800 text-center">
-    <h3 class="text-gold font-bold mb-4 uppercase text-xs">Próximos Ensayos</h3>
+        <div id="tab-ensayos" class="hidden bg-premium p-6 rounded-2xl border border-gray-800">
+    <h3 class="text-gold font-bold mb-6 uppercase text-xs text-center">Próximos Ensayos</h3>
     <div id="lista-ensayos" class="space-y-3">
         <p class="text-[10px] text-gray-500">No hay ensayos programados.</p>
     </div>
@@ -799,39 +799,91 @@ window.renderizarEnsayosVoluntario = function(ensayos) {
 
     // Ordenar cronológicamente
     ensayos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+    
+    const hoy = new Date();
+    hoy.setHours(0,0,0,0);
 
-    const colores = {
-        'Ensayo': 'border-gray-500',
-        'Servicio General': 'border-gold',
-        'Ensayo de Equipo': 'border-blue-400',
-        'Soundcheck': 'border-purple-500'
-    };
+    const indiceActivo = ensayos.findIndex(ev => {
+    const fecha = new Date(ev.fecha + "T00:00:00");
+    return fecha >= hoy;
+    });
+
+
 
     contenedor.innerHTML = ''; 
     
-    ensayos.forEach(ev => {
-        // Creamos la fecha localmente para evitar desfases de zona horaria
-        const [year, month, day] = ev.fecha.split('-').map(Number);
-        const fechaObj = new Date(year, month - 1, day);
-        
-        // Formateador para día de la semana y mes
-        const opciones = { weekday: 'long', day: 'numeric', month: 'long' };
-        const fechaFormateada = fechaObj.toLocaleDateString('es-ES', opciones);
+    ensayos.forEach((ev, index) => {
 
-        const colorBorde = colores[ev.tipo] || 'border-gray-800';
+    const activo =
+        indiceActivo === -1
+            ? index === ensayos.length - 1
+            : index === indiceActivo;
+
+    // Creamos la fecha localmente...
+    const [year, month, day] = ev.fecha.split('-').map(Number);
+    const fechaObj = new Date(year, month - 1, day);
+
+    const opciones = { weekday: 'long', day: 'numeric', month: 'long' };
+    const fechaFormateada = fechaObj.toLocaleDateString('es-ES', opciones);
+
+    let colorBorde = "#FFD95A"; // Ensayo
+
+    if (ev.tipo.toUpperCase() === "SOUNDCHECK") {
+        colorBorde = "#A855F7";
+    }
+
+    if (ev.tipo.toUpperCase() === "SERVICIO GENERAL") {
+        colorBorde = "#38BDF8";
+    }
+
+    const div = document.createElement('div');
+
+    div.className = `
+border-b border-gray-800
+py-7
+pl-6
+transition-all duration-500
+${
+    activo
+        ? 'border-l-4'
+        : 'border-l border-gray-800 opacity-60'
+}
+`;
+
+if (activo) {
+    div.style.borderLeftColor = colorBorde;
+}
+
         
-        const div = document.createElement('div');
-        div.className = `border-b border-gray-800 p-4 flex justify-between items-center group hover:bg-[#1a1a1a] transition`;
-        
-        div.innerHTML = `
-            <div class="border-l-2 ${colorBorde} pl-4">
-                <p class="text-[10px] font-bold uppercase tracking-widest text-white">${ev.tipo}</p>
-                <p class="text-[10px] text-gray-400 mt-1 capitalize">${fechaFormateada} | ${ev.hora}</p>
-            </div>
-            <div class="px-2 py-1 rounded border border-gray-700 text-[9px] text-gray-500 font-bold uppercase">
-                ${ev.equipo}
-            </div>
-        `;
+
+
+      div.innerHTML = `
+<div class="py-2">
+
+    <h3 class="${
+    activo
+        ? 'text-gold'
+        : 'text-white'
+} text-xl font-bold uppercase tracking-wide transition-all duration-300">
+    ${ev.tipo}
+</h3>
+
+    <p class="mt-2 text-sm text-gray-400 capitalize">
+        ${fechaFormateada} · ${ev.hora}
+    </p>
+
+    ${
+        ev.noticias
+        ? `
+        <p class="mt-5 text-[15px] leading-7 text-gray-300">
+            ${ev.noticias}
+        </p>
+        `
+        : ''
+    }
+
+</div>
+`;
         contenedor.appendChild(div);
     });
 }
