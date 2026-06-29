@@ -112,8 +112,9 @@
          class="h-14 w-auto brightness-0 invert opacity-90 mb-10">
 
     <!-- Bienvenida -->
-    <p class="text-[10px] uppercase tracking-[0.35em] text-gray-500">
-        Bienvenido
+    <p id="texto-bienvenida"
+    class="text-[10px] uppercase tracking-[0.35em] text-gray-500">
+    BIENVENIDO
     </p>
 
     <h2 id="perfil-nickname"
@@ -313,8 +314,33 @@ window.loginVoluntario = async () => {
             document.getElementById('perfil-nickname').textContent =
     currentUser.nickname || currentUser.nombre || '-';
 
-document.getElementById('perfil-rol').textContent =
-    currentUser.detalle || currentUser.rol || '-';
+// Bienvenido / Bienvenida
+const saludo =
+    (currentUser.sexo || "").toLowerCase() === "femenino"
+        ? "BIENVENIDA"
+        : "BIENVENIDO";
+
+document.getElementById("texto-bienvenida").textContent = saludo;
+
+const perfilRol = document.getElementById("perfil-rol");
+
+if ((currentUser.rol || "").toLowerCase() === "voz") {
+
+    perfilRol.innerHTML = `
+        <span class="text-gray-600 uppercase tracking-[0.3em] text-[10px]">
+            Rango de voz
+        </span>
+        <br>
+        <span class="text-gray-300 tracking-[0.2em]">
+            ${currentUser.detalle}
+        </span>
+    `;
+
+} else {
+
+    perfilRol.textContent = currentUser.detalle || currentUser.rol || "-";
+
+}
 
 
             // Icono del equipo
