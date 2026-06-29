@@ -1000,21 +1000,21 @@ window.cargarEnsayos = async function() {
         }
 
         await window.addDoc(window.collection(window.db, "asistencia"), {
-
-            nombreVoluntario: nombre,
-            email: localStorage.getItem("deep_user_email"),
-
-            fecha: fechaHoy,
-
-            hora: new Date().toLocaleTimeString("es-GT"),
-
-            timestamp: new Date(),
-
-            tipoEvento: tokenData.tipoEvento,
-
-            estado: "Presente"
-
-        });
+    nombreVoluntario: nombre,
+    nickname: currentUser?.nickname || "",
+    email: localStorage.getItem("deep_user_email") || "",
+    equipo: currentUser?.equipo || "Sin equipo",
+    rol: currentUser?.rol || "",
+    detalle: currentUser?.detalle || "",
+    tipoEvento: tokenData.tipoEvento,
+    fecha: fechaHoy,
+    hora: new Date().toLocaleTimeString("es-GT"),
+    mes: new Date().getMonth() + 1,
+    anio: new Date().getFullYear(),
+    estado: "Presente",
+    tipoRegistro: "QR",
+    timestamp: new Date()
+});
 
         alert("¡Asistencia registrada!");
 
