@@ -967,32 +967,67 @@ window.cargarEnsayos = async function() {
 
 
 
-    window.marcarAsistencia = async function() {
+   window.marcarAsistencia = async function () {
+
     const params = new URLSearchParams(window.location.search);
-    const tokenURL = params.get('token');
-    const fechaHoy = new Date().toISOString().split('T')[0]; // Fecha de hoy
-    const nombre = document.getElementById('nombre-voluntario').value.trim();
+    const tokenURL = params.get("token");
+
+    const fechaHoy = new Date().toISOString().split("T")[0];
+
+    const nombre = document.getElementById("nombre-voluntario").value.trim();
 
     if (!tokenURL) {
-        alert("Error: No se detectó un token en la sesión.");
+        alert("QR inválido.");
         return;
     }
 
     try {
+
+        // Leer el documento del token
+        const tokenRef = window.doc(window.db, "tokens", "diario");
+        const tokenSnap = await window.getDoc(tokenRef);
+
+        if (!tokenSnap.exists()) {
+            alert("No existe un evento activo.");
+            return;
+        }
+
+        const tokenData = tokenSnap.data();
+
+        if (tokenData.token !== tokenURL) {
+            alert("Este QR ya no es válido.");
+            return;
+        }
+
         await window.addDoc(window.collection(window.db, "asistencia"), {
+
             nombreVoluntario: nombre,
-            email: localStorage.getItem('deep_user_email'),
-            fecha: fechaHoy, // Usamos la fecha generada aquí
-            hora: new Date().toLocaleTimeString('es-GT'),
-            timestamp: new Date()
+            email: localStorage.getItem("deep_user_email"),
+
+            fecha: fechaHoy,
+
+            hora: new Date().toLocaleTimeString("es-GT"),
+
+            timestamp: new Date(),
+
+            tipoEvento: tokenData.tipoEvento,
+
+            estado: "Presente"
+
         });
 
-        alert("¡Asistencia registrada con éxito!");
-        window.location.href = 'voluntarios.html'; // Recarga limpia
+        alert("¡Asistencia registrada!");
+
+        window.location.href = "voluntarios.html";
+
     } catch (err) {
-        console.error("Error al registrar:", err);
+
+        console.error(err);
+
         alert("Error al registrar asistencia.");
+
     }
+
 };
 
 
