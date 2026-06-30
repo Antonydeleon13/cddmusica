@@ -253,15 +253,18 @@
 
     
 
-        <!-- Título estilo Smoothy Bubble en Gris Oscuro -->
-        <h2 class="font-bubble text-3xl text-[#1a1a1a] mb-2 tracking-wide antialiased select-none">
-            ¡Feliz Cumpleaños!
-        </h2>
+<h2 class="text-transparent bg-clip-text bg-gradient-to-b from-amber-300 via-yellow-500 to-amber-600 text-5xl tracking-[0.08em] leading-none select-none filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]"
+    style="
+        font-family:'Bebas Neue', sans-serif;
+        transform:scaleY(1.15);
+    ">
+    ¡Feliz Cumpleaños!
+</h2>
 
-        <!-- Nombre Destacado en Oro Gradiente -->
-        <h3 id="cumple-nombre" class="text-4xl md:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-amber-500 via-yellow-600 to-amber-700 mb-6 filter drop-shadow-[0_1px_4px_rgba(212,175,55,0.15)]">
-            --
-        </h3>
+<!-- Nombre Destacado en Café Ébano / Oro Viejo Profundo -->
+<h3 id="cumple-nombre" class="text-4xl md:text-5xl font-black tracking-tight text-[#2b2214] mb-6 mt-2">
+    --
+</h3>
 
         <!-- Mensaje Corto y Directo -->
         <p class="text-gray-600 text-sm leading-relaxed max-w-xs mx-auto font-normal">
@@ -280,11 +283,26 @@
 
         <!-- Firma con Logo Grande -->
         <div class="mb-10 flex flex-col items-center gap-3">
-            <span class="text-[9px] uppercase tracking-widest text-gray-400 font-medium">
-                Att: El equipo de
-            </span>
-            <img src="logodeep.png" alt="LogoDeep" class="h-16 max-w-[240px] object-contain opacity-100">
-        </div>
+
+    <span class="text-[9px] uppercase tracking-widest text-gray-400 font-medium">
+        Att: El equipo de
+    </span>
+
+    <div class="flex items-center justify-center gap-3">
+
+        <img src="logodeep.png"
+             alt="Logo Deep"
+             class="h-11 w-auto object-contain opacity-100">
+
+        <div class="w-px h-5 bg-gradient-to-b from-transparent via-yellow-500/60 to-transparent"></div>
+
+        <img src="casa.png"
+             alt="Casa"
+             class="h-8 w-auto object-contain opacity-95">
+
+    </div>
+
+</div>
 
        <button onclick="cerrarCartaCumple()"
     class="mt-10 uppercase tracking-[0.45em] text-xs font-semibold
