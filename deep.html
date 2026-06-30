@@ -50,6 +50,25 @@
 .eye-icon { cursor: pointer; transition: opacity 0.2s; }
 .eye-icon:hover { opacity: 0.7; }
 
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+
+select:invalid {
+    color: #9CA3AF;
+}
+
+select option {
+    color: white;
+}
+
+select option[value=""] {
+    color: #9CA3AF;
+}
+
 
 </style>
 </head>
@@ -638,11 +657,7 @@
          </div>
             </div>
 
-<div id="vista-ensayos" class="vista hidden p-6">
-    <div class="flex justify-between items-center mb-8">
-        <h2 class="text-2xl font-bold text-white">Gestión de Ensayos</h2>
-        <button onclick="abrirModalEnsayo()" class="text-gold border border-gold px-4 py-2 text-xs uppercase hover:bg-gold hover:text-black transition">+ Programar Ensayo</button>
-    </div>
+
 
     <div id="lista-ensayos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         </div>
@@ -887,38 +902,21 @@ document.getElementById('modal-voluntario').addEventListener('click', function(e
             window.showToast("¡Canción guardada correctamente!");
         }
         
-    // 4. Limpiar UI - FUERZA BRUTA
-document.getElementById('modal-cancion').classList.add('hidden');
+        // 4. Limpiar UI - OPTIMIZADO SIN REPETICIONES
+        window.limpiarModalCancion();
 
-// A. Limpiamos el formulario global, sin importar dónde esté en el DOM
-const form = document.getElementById('form-cancion');
-if (form) {
-    form.reset();
-}
+        // Limpiar textos de archivos
+        ['nombre-archivo-audio', 'nombre-archivo-pdf'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = '';
+        });
 
-// B. LIMPIEZA INDIVIDUAL (Si los IDs existen, se vacían. Punto.)
-const campos = ['titulo', 'autor', 'nota', 'bpm', 'edit-cancion-id', 'audio-file', 'pdf-file'];
-campos.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-        el.value = ''; // Vacía el campo
-    }
-});
+        // Ocultar progreso y resetear botón
+        if (contenedor) contenedor.classList.add('hidden');
+        if (btn) btn.disabled = false;
 
-// C. Limpiar textos de archivos
-['nombre-archivo-audio', 'nombre-archivo-pdf'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.innerText = '';
-});
-
-// D. Ocultar progreso y resetear botón
-if (contenedor) contenedor.classList.add('hidden');
-if (btn) btn.disabled = false;
-
-// REFRESCAR LISTA
-await window.cargarSongs();
-
-window.limpiarModalCancion();
+        // REFRESCAR LISTA
+        await window.cargarSongs();
 
     } catch (error) {
         console.error("Error crítico:", error);
@@ -929,7 +927,6 @@ window.limpiarModalCancion();
         if (contenedor) contenedor.classList.add('hidden');
     }
 };
-
 
 function filtrarCanciones() {
     const input = document.getElementById('buscador-canciones').value.toLowerCase();
@@ -950,6 +947,8 @@ function filtrarCanciones() {
         }
     });
 }
+
+
 window.filtrarCanciones = filtrarCanciones;
 
     window.cargarSongs = async () => {
@@ -1039,12 +1038,55 @@ window.editarCancion = async (id) => {
             document.getElementById('nota').value = data.nota || '';
             document.getElementById('bpm').value = data.bpm || '';
             
-            // 3. Ilusión de carga: Actualizar los textos de los archivos
-            const audioSpan = document.getElementById('nombre-archivo-audio');
-            const pdfSpan = document.getElementById('nombre-archivo-pdf');
-            
-            audioSpan.innerText = data.audioUrl ? "✓ Archivo actual: cargado en servidor" : "";
-            pdfSpan.innerText = data.pdfUrl ? "✓ Archivo actual: cargado en servidor" : "";
+          // 3. Mostrar los archivos actualmente asociados
+const audioSpan = document.getElementById('nombre-archivo-audio');
+const pdfSpan = document.getElementById('nombre-archivo-pdf');
+
+// Limpiar textos anteriores
+audioSpan.innerText = "";
+pdfSpan.innerText = "";
+
+// AUDIO
+if (data.audioUrl) {
+    let nombreAudio = decodeURIComponent(
+        data.audioUrl.split('/').pop().split('?')[0]
+    );
+
+    // Quitar carpeta y timestamp
+    nombreAudio = nombreAudio
+        .replace(/^audio\//, '')
+        .replace(/^\d+_/, '');
+
+    // Acortar si es muy largo
+    const nombreAudioCorto =
+        nombreAudio.length > 45
+            ? nombreAudio.substring(0, 45) + "..."
+            : nombreAudio;
+
+    audioSpan.innerText = "🎵 " + nombreAudioCorto;
+    audioSpan.title = nombreAudio;
+}
+
+// PDF
+if (data.pdfUrl) {
+    let nombrePdf = decodeURIComponent(
+        data.pdfUrl.split('/').pop().split('?')[0]
+    );
+
+    // Quitar carpeta y timestamp
+    nombrePdf = nombrePdf
+        .replace(/^pdf\//, '')
+        .replace(/^\d+_/, '');
+
+    // Acortar si es muy largo
+    const nombrePdfCorto =
+        nombrePdf.length > 45
+            ? nombrePdf.substring(0, 45) + "..."
+            : nombrePdf;
+
+    pdfSpan.innerText = "📄 " + nombrePdfCorto;
+    pdfSpan.title = nombrePdf;
+}
             
             // 4. Abrir modal y actualizar botón
             document.getElementById('modal-cancion').classList.remove('hidden');
@@ -1287,7 +1329,7 @@ window.editarSetlist = async (id) => {
             const selectEquipo = document.getElementById('select-equipo');
             if (selectEquipo) selectEquipo.value = data.equipo;
 
-            const inputNombre = document.getElementById('input-nombre-evento'); 
+            const inputNombre = document.getElementById('nombre-setlist');
             if (inputNombre) inputNombre.value = data.nombre;
             
             window.setlistTemporal = data.canciones;
@@ -1344,25 +1386,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 1. LÓGICA DE CANCIONES
+    // ==========================
+    // LÓGICA DE CANCIONES
+    // ==========================
     const btnCancion = document.getElementById('btn-guardar-cancion');
+
     if (btnCancion) {
         console.log("Botón Canción encontrado");
+
         btnCancion.addEventListener('click', async (e) => {
-            e.preventDefault(); 
-            
-            // Obtenemos el ID oculto del modal (si existe, es edición)
+            e.preventDefault();
+
+            // Evitar doble clic
+            if (btnCancion.disabled) return;
+
             const idInput = document.getElementById('edit-cancion-id');
-            const id = idInput ? idInput.value : '';
-            
+            const id = idInput ? idInput.value.trim() : '';
+
             const tituloInput = document.getElementById('titulo');
             const autorInput = document.getElementById('autor');
-            
+
             if (!tituloInput?.value.trim() || !autorInput?.value.trim()) {
                 window.showToast("El Título y el Autor son obligatorios.");
                 return;
             }
-            
+
             const datos = {
                 titulo: tituloInput.value.trim(),
                 autor: autorInput.value.trim(),
@@ -1370,39 +1418,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 bpm: document.getElementById('bpm')?.value.trim() || ''
             };
 
-            const audioFile = document.getElementById('audio-file')?.files[0];
-            const pdfFile = document.getElementById('pdf-file')?.files[0];
+            const audioFile = document.getElementById('audio-file')?.files[0] || null;
+            const pdfFile = document.getElementById('pdf-file')?.files[0] || null;
 
             try {
                 btnCancion.disabled = true;
                 btnCancion.innerText = "Procesando...";
-                
-                if (id) {
-                    // MODO ACTUALIZAR
-                    await window.updateDoc(window.doc(window.db, "songs", id), datos);
-                    window.showToast("Canción actualizada correctamente");
-                } else {
-                    // MODO CREAR
-                    if (typeof window.guardarCancion !== 'function') {
-                        throw new Error("window.guardarCancion no está definida.");
-                    }
-                    await window.guardarCancion(datos, audioFile, pdfFile);
+
+                if (typeof window.guardarCancion !== 'function') {
+                    throw new Error("window.guardarCancion no está definida.");
                 }
-                
-                document.getElementById('modal-cancion')?.classList.add('hidden');
-                document.getElementById('form-cancion')?.reset();
-                if (idInput) idInput.value = ''; // Limpiamos el ID
-                if (typeof window.cargarSongs === 'function') window.cargarSongs();
-                
+
+                // Si estamos editando, obtenemos los datos actuales
+                // para conservar los archivos existentes cuando no se reemplazan.
+                if (id) {
+                    const docRef = window.doc(window.db, "songs", id);
+                    const docSnap = await window.getDoc(docRef);
+
+                    if (!docSnap.exists()) {
+                        throw new Error("La canción no existe.");
+                    }
+
+                    const actual = docSnap.data();
+
+                    datos.audioUrl = actual.audioUrl || "";
+                    datos.pdfUrl = actual.pdfUrl || "";
+                }
+
+                // Crear o actualizar usando la misma función
+                await window.guardarCancion(datos, audioFile, pdfFile);
+
             } catch (err) {
                 console.error("Error:", err);
                 window.showToast("Error: " + (err.message || "Desconocido"));
             } finally {
                 btnCancion.disabled = false;
-                btnCancion.innerText = "Guardar Canción";
+
+                if (document.getElementById('edit-cancion-id')?.value) {
+                    btnCancion.innerText = "Actualizar Canción";
+                } else {
+                    btnCancion.innerText = "Guardar Canción";
+                }
             }
         });
     }
+
 
 
 
@@ -1841,26 +1901,48 @@ contenedor.innerHTML += `
     }
     
 else if (vista === 'ensayos') {
-        // Usamos += para mantener el título generado al inicio de la función
-        contenedor.innerHTML += `
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-gold uppercase tracking-widest mb-6 text-lg font-bold">Gestión de Ensayos</h2>
-                <button onclick="abrirModalEnsayo()" class="text-gold border border-gold px-4 py-2 text-xs uppercase hover:bg-gold hover:text-black transition">
-                    + Programar Ensayo
-                </button>
-            </div>
-            <div id="lista-ensayos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            </div>
-        `;
 
-        if (typeof window.cargarEnsayos === 'function') {
-            window.cargarEnsayos();
-        } else {
-            console.warn("La función cargarEnsayos no está definida en window.");
-            const lista = document.getElementById('lista-ensayos');
-            if (lista) lista.innerHTML = '<p class="text-gray-500">Error: No se pudo cargar la gestión de ensayos.</p>';
+    contenedor.innerHTML += `
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-gold uppercase tracking-widest text-lg font-bold">
+                Gestión de Ensayos
+            </h2>
+
+        <button
+         onclick="abrirModalEnsayo()"
+         class="text-gold border border-gold px-4 py-2 text-xs uppercase rounded transition duration-200 hover:border-white hover:text-white">
+        + Programar Ensayo
+        </button>
+         </div>
+
+        <!-- Aquí se generan automáticamente los paneles -->
+        <div id="paneles-equipos"
+             class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        </div>
+    `;
+
+    if (typeof window.cargarEnsayos === 'function') {
+        window.cargarEnsayos();
+    } else {
+        console.warn("La función cargarEnsayos no está definida.");
+
+        const paneles = document.getElementById("paneles-equipos");
+
+        if (paneles) {
+            paneles.innerHTML = `
+                <div class="col-span-full bg-[#111] border border-red-500 rounded-xl p-6 text-center">
+                    <p class="text-red-400 font-semibold">
+                        No se pudo cargar la gestión de ensayos.
+                    </p>
+
+                    <p class="text-gray-500 text-sm mt-2">
+                        Verifica que la función cargarEnsayos() exista.
+                    </p>
+                </div>
+            `;
         }
     }
+}
 
     else if (vista === 'logistica') {
         // Usamos += para mantener el título generado al inicio de la función
@@ -1976,12 +2058,16 @@ window.generarVistaAsistencia = function () {
 
         <div id="panel-acciones-qr" class="flex items-center gap-4">
             <select
-                id="tipo-evento-qr"
-                class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500">
-                <option value="ENSAYO">Ensayo</option>
-                <option value="SOUNDCHECK">Soundcheck</option>
-                <option value="SERVICIO GENERAL">Servicio General</option>
-            </select>
+    id="tipo-evento-qr"
+    class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white
+           focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition duration-200">
+
+    <option value="ENSAYO">Ensayo</option>
+    <option value="SOUNDCHECK">Soundcheck</option>
+    <option value="SERVICIO GENERAL">Servicio General</option>
+    <option value="FOCUS">Focus</option>
+
+</select>
             <button
                 onclick="generarQR()"
                 class="bg-yellow-500 hover:bg-yellow-400 text-black px-6 py-3 rounded-lg font-bold transition">
@@ -2086,20 +2172,24 @@ window.generarVistaAsistencia = function () {
         </h2>
 
         <div class="flex flex-wrap gap-4">
-           <input
+          <input
     id="filtro-fecha"
-    type="text"
-    readonly
-    class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white cursor-pointer">
+    type="date"
+    class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500">
 
             <select
-                id="filtro-evento"
-                class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500">
-                <option value="">Todos los eventos</option>
-                <option value="ENSAYO">Ensayo</option>
-                <option value="SOUNDCHECK">Soundcheck</option>
-                <option value="SERVICIO GENERAL">Servicio General</option>
-            </select>
+    id="filtro-evento"
+    class="bg-[#161616] border border-gray-700 rounded-lg px-4 py-3 text-white
+           focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20
+           transition duration-200">
+
+   <option value="">Todos los eventos</option>
+<option value="ENSAYO">Ensayo</option>
+<option value="SOUNDCHECK">Soundcheck</option>
+<option value="SERVICIO GENERAL">Servicio General</option>
+<option value="FOCUS">Focus</option>
+
+</select>
 
             <select
                 id="filtro-mes"
@@ -2169,15 +2259,18 @@ window.generarVistaAsistencia = function () {
             class="bg-[#161616] border border-gray-700 rounded-xl p-3 text-white">
 
         <select
-            id="estadistica-evento"
-            class="bg-[#161616] border border-gray-700 rounded-xl p-3 text-white">
+    id="estadistica-evento"
+    class="bg-[#161616] border border-gray-700 rounded-xl p-3 text-white
+           focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20
+           transition duration-200">
 
-            <option value="">Todos los eventos</option>
-            <option value="ENSAYO">Ensayo</option>
-            <option value="SOUNDCHECK">Soundcheck</option>
-            <option value="SERVICIO GENERAL">Servicio General</option>
+   <option value="">Todos los eventos</option>
+<option value="ENSAYO">Ensayo</option>
+<option value="SOUNDCHECK">Soundcheck</option>
+<option value="SERVICIO GENERAL">Servicio General</option>
+<option value="FOCUS">Focus</option>
 
-        </select>
+</select>
 
         <select
             id="estadistica-team"
@@ -2339,27 +2432,45 @@ const filtroFecha = document.getElementById("filtro-fecha");
 
 
 window.mostrarTabAsistencia = function(tab){
+
     const hoy = document.getElementById("contenido-hoy");
     const historial = document.getElementById("contenido-historial");
     const estadisticas = document.getElementById("contenido-estadisticas");
+
+    // NUEVO
+    const panelQR = document.getElementById("panel-acciones-qr");
+
     hoy.classList.add("hidden");
     historial.classList.add("hidden");
     estadisticas.classList.add("hidden");
-    document.getElementById("tab-hoy").className = "px-6 py-2 rounded-lg text-gray-400 hover:text-white transition";
-    document.getElementById("tab-historial").className = "px-6 py-2 rounded-lg text-gray-400 hover:text-white transition";
-    document.getElementById("tab-estadisticas").className = "px-6 py-2 rounded-lg text-gray-400 hover:text-white transition";
+
+    document.getElementById("tab-hoy").className =
+        "px-6 py-2 rounded-lg text-gray-400 hover:text-white transition";
+    document.getElementById("tab-historial").className =
+        "px-6 py-2 rounded-lg text-gray-400 hover:text-white transition";
+    document.getElementById("tab-estadisticas").className =
+        "px-6 py-2 rounded-lg text-gray-400 hover:text-white transition";
+
     if(tab==="hoy"){
         hoy.classList.remove("hidden");
-        document.getElementById("tab-hoy").className = "px-6 py-2 rounded-lg bg-yellow-500 text-black font-bold";
+        panelQR.classList.remove("hidden"); // Mostrar QR
+        document.getElementById("tab-hoy").className =
+            "px-6 py-2 rounded-lg bg-yellow-500 text-black font-bold";
     }
+
     if(tab==="historial"){
         historial.classList.remove("hidden");
-        document.getElementById("tab-historial").className = "px-6 py-2 rounded-lg bg-yellow-500 text-black font-bold";
+        panelQR.classList.add("hidden"); // Ocultar QR
+        document.getElementById("tab-historial").className =
+            "px-6 py-2 rounded-lg bg-yellow-500 text-black font-bold";
         cargarHistorialAsistencia();
     }
+
     if(tab==="estadisticas"){
         estadisticas.classList.remove("hidden");
-        document.getElementById("tab-estadisticas").className = "px-6 py-2 rounded-lg bg-yellow-500 text-black font-bold";
+        panelQR.classList.add("hidden"); // Ocultar QR
+        document.getElementById("tab-estadisticas").className =
+            "px-6 py-2 rounded-lg bg-yellow-500 text-black font-bold";
     }
 };
 
@@ -2374,7 +2485,7 @@ window.cargarHistorialAsistencia = async function () {
     const inputFecha = document.getElementById("filtro-fecha");
     const selectEvento = document.getElementById("filtro-evento");
     const selectMes = document.getElementById("filtro-mes");
-    const fecha = inputFecha?.dataset.fecha || "";
+    const fecha = inputFecha?.value || "";
     const evento = selectEvento?.value || "";
     const mes = selectMes?.value || "";
     const snapshot = await window.getDocs(window.collection(window.db, "asistencia"));
@@ -3340,57 +3451,34 @@ document.getElementById('form-ensayo').addEventListener('submit', async (e) => {
 });
 
 
-window.renderizarEnsayos = function(ensayos) {
-    const contenedor = document.getElementById('lista-ensayos');
-    contenedor.innerHTML = ''; 
-
-    // 1. Ordenamos cronológicamente antes de pintar
-    ensayos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-
-    // Definimos colores según el tipo para que sea más fácil de leer
-    const colores = {
-        'Ensayo': 'border-gray-600',
-        'Servicio General': 'border-gold',
-        'Ensayo de Equipo': 'border-blue-400',
-        'Soundcheck': 'border-purple-500'
-    };
-
+window.renderizarEnsayos = function (ensayos) {
+    const contenedor = document.getElementById("paneles-equipos");
+    if (!contenedor) return;
+    contenedor.innerHTML = "";
+    ensayos.sort((a, b) => { return new Date(a.fecha + " " + (a.hora || "00:00")) - new Date(b.fecha + " " + (b.hora || "00:00")); });
+    const equipos = {};
     ensayos.forEach(ev => {
-        const fechaObj = new Date(ev.fecha + 'T' + (ev.hora || '00:00'));
-        const fechaFormateada = fechaObj.toLocaleDateString('es-ES', { 
-            day: 'numeric', month: 'long', year: 'numeric' 
-        });
-
-        // Formato de hora 12h
-        let [hh, mm] = (ev.hora || '00:00').split(':');
-        const ampm = hh >= 12 ? 'pm' : 'am';
-        hh = hh % 12 || 12;
-        const horaFormateada = `${hh}${mm !== '00' ? ':' + mm : ''}${ampm}`;
-
-        const colorBorde = colores[ev.tipo] || 'border-gray-800';
-
-        const div = document.createElement('div');
-        // Estilo de línea de tiempo con borde lateral personalizado
-        div.className = `mb-6 border-l-2 ${colorBorde} pl-4 py-1 bg-[#121212]/50 rounded-r-lg hover:bg-[#1a1a1a] transition`;
-        
-        div.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div>
-                    <h4 class="text-gray-500 text-[10px] uppercase tracking-widest font-bold">
-                        ${fechaFormateada} - ${horaFormateada}
-                    </h4>
-                    <div class="flex items-center gap-2 mt-1">
-                        <span class="text-white font-bold text-sm">${ev.tipo}</span>
-                        <span class="text-gold text-[10px] uppercase font-bold border border-gold/20 px-1 rounded">${ev.equipo}</span>
-                    </div>
-                    <p class="text-gray-400 text-xs mt-2 italic">${ev.noticias || ''}</p>
-                </div>
-                <button onclick="eliminarEnsayo('${ev.id}')" class="text-gray-600 hover:text-red-500 transition px-2">✕</button>
-            </div>
-        `;
-        contenedor.appendChild(div);
+        const nombreEquipo = ev.equipo || "Sin equipo";
+        if (!equipos[nombreEquipo]) { equipos[nombreEquipo] = []; }
+        equipos[nombreEquipo].push(ev);
     });
-}
+    const colores = { "Ensayo": "border-gray-600", "Servicio General": "border-gold", "Ensayo de Equipo": "border-blue-400", "Soundcheck": "border-purple-500" };
+    Object.keys(equipos).forEach(nombreEquipo => {
+        const eventos = equipos[nombreEquipo];
+        let htmlEventos = "";
+        eventos.forEach(ev => {
+            const fechaObj = new Date(ev.fecha + "T" + (ev.hora || "00:00"));
+            const fecha = fechaObj.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+            let [hh, mm] = (ev.hora || "00:00").split(":");
+            const ampm = hh >= 12 ? "PM" : "AM";
+            hh = hh % 12 || 12;
+            const hora = `${hh}${mm !== "00" ? ":" + mm : ""} ${ampm}`;
+            const color = colores[ev.tipo] || "border-gray-700";
+            htmlEventos += `<div class="border-l-2 ${color} pl-3 py-2 mb-3"><div class="flex justify-between"><div><div class="text-[10px] text-gray-500 uppercase">${fecha} • ${hora}</div><div class="text-white font-semibold text-sm">${ev.tipo}</div>${ev.noticias ? `<div class="text-xs text-gray-400 mt-1">${ev.noticias}</div>` : ""}</div><button onclick="eliminarEnsayo('${ev.id}')" class="text-gray-600 hover:text-red-500">✕</button></div></div>`;
+        });
+        contenedor.innerHTML += `<div class="bg-[#111] border border-gray-800 rounded-xl p-5"><div class="flex justify-between items-center mb-4"><div><h3 class="text-gold font-bold text-lg">${nombreEquipo}</h3><p class="text-xs text-gray-500">${eventos.length} ensayo${eventos.length > 1 ? "s" : ""}</p></div></div>${htmlEventos}</div>`;
+    });
+};
 
 
 window.abrirModalEnsayo = function() {
@@ -3665,17 +3753,16 @@ window.cargarQREventoActivo = async function () {
         "text-sky-400"
     );
 
-    if (data.tipoEvento === "ENSAYO") {
-        evento.classList.add("text-yellow-400");
-    }
+    const coloresEvento = {
+    "ENSAYO": "text-yellow-400",
+    "SOUNDCHECK": "text-violet-400",
+    "SERVICIO GENERAL": "text-sky-400",
+    "FOCUS": "text-emerald-400"
+};
 
-    if (data.tipoEvento === "SOUNDCHECK") {
-        evento.classList.add("text-violet-400");
-    }
-
-    if (data.tipoEvento === "SERVICIO GENERAL") {
-        evento.classList.add("text-sky-400");
-    }
+if (coloresEvento[data.tipoEvento]) {
+    evento.classList.add(coloresEvento[data.tipoEvento]);
+}
 
     qr.innerHTML = "";
 
@@ -3726,13 +3813,14 @@ window.cargarAsistenciaHoy = async function () {
             "text-sky-400"
         );
 
-        if (evento === "ENSAYO") {
-            card.classList.add("text-yellow-400");
-        } else if (evento === "SOUNDCHECK") {
-            card.classList.add("text-violet-400");
-        } else if (evento === "SERVICIO GENERAL") {
-            card.classList.add("text-sky-400");
-        }
+       const coloresEvento = {
+    "ENSAYO": "text-yellow-400",
+    "SOUNDCHECK": "text-violet-400",
+    "SERVICIO GENERAL": "text-sky-400",
+    "FOCUS": "text-emerald-400"
+};
+
+card.classList.add(coloresEvento[evento] || "text-white");
 
     }
 
@@ -3991,6 +4079,10 @@ window.confirmarRegistro = confirmarRegistro;
             </select>
 
             <select id="ensayo-tipo" required class="w-full p-3 bg-[#0d0d0d] border border-gray-800 text-white rounded focus:border-gold outline-none transition">
+    <option value="" selected disabled class="text-gray-500">
+        Seleccione un tipo
+    </option>
+
     <option value="Ensayo">Ensayo</option>
     <option value="Soundcheck">Soundcheck</option>
     <option value="Servicio General">Servicio General</option>
@@ -4003,10 +4095,22 @@ window.confirmarRegistro = confirmarRegistro;
             
             <textarea id="ensayo-noticias" placeholder="Noticias o detalles..." class="w-full p-3 bg-[#0d0d0d] border border-gray-800 text-white rounded focus:border-gold outline-none transition"></textarea>
             
-            <div class="flex gap-2 justify-end mt-4">
-                <button type="button" onclick="document.getElementById('modal-ensayo').classList.add('hidden')" class="px-4 py-2 text-gray-400 hover:text-white transition">Cancelar</button>
-                <button type="submit" class="px-4 py-2 bg-gold text-black font-bold rounded hover:bg-yellow-600 transition">Guardar</button>
-            </div>
+           <div class="flex justify-end gap-3">
+
+    <button
+        type="button"
+        onclick="document.getElementById('modal-ensayo').classList.add('hidden')"
+        class="px-4 py-2 border border-gray-600 text-gray-400 rounded hover:border-white hover:text-white transition duration-200">
+        Cancelar
+    </button>
+
+    <button
+        type="submit"
+        class="px-4 py-2 border border-gold text-gold rounded font-semibold hover:border-white hover:text-white transition duration-200">
+        Guardar
+    </button>
+
+</div>
         </form>
     </div>
 </div>
