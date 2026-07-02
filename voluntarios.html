@@ -1080,12 +1080,19 @@ if (activo) {
 
 
 window.cargarEnsayos = async function() {
-if (
-!currentUser ||
-!currentUser.equipo ||
-currentUser.equipo === "Sin equipo"
-) {
-document.getElementById("lista-ensayos").innerHTML = `
+    // --- SOLUCIÓN PARA LA APP ANCLADA (PWA) ---
+    // Si el login automático sigue procesándose y currentUser aún es null,
+    // esperamos 150ms y volvemos a llamar a la función en lugar de pintar que no tiene equipo.
+    if (!currentUser) {
+        setTimeout(window.cargarEnsayos, 150);
+        return;
+    }
+
+    if (
+        !currentUser.equipo ||
+        currentUser.equipo === "Sin equipo"
+    ) {
+        document.getElementById("lista-ensayos").innerHTML = `
 <div class="text-center py-10">
 <p class="text-gray-500 uppercase tracking-widest text-xs">
 Aún no perteneces a un team.
@@ -1096,40 +1103,50 @@ aquí aparecerán tus próximos ensayos.
 </p>
 </div>
 `;
-return;
-}
-try {
-const querySnapshot = await window.getDocs(
-window.collection(window.db, "ensayos")
-);
-const lista = [];
-querySnapshot.forEach(doc => {
-lista.push({
-id: doc.id,
-...doc.data()
-});
-});
-window.renderizarEnsayosVoluntario(lista);
-} catch (err) {
-console.error("Error al cargar agenda:", err);
-}
+        return;
+    }
+    
+    try {
+        const querySnapshot = await window.getDocs(
+            window.collection(window.db, "ensayos")
+        );
+        const lista = [];
+        querySnapshot.forEach(doc => {
+            lista.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        window.renderizarEnsayosVoluntario(lista);
+    } catch (err) {
+        console.error("Error al cargar agenda:", err);
+    }
 }
 
 
 
    window.addEventListener('load', () => {
-    // Solo cargamos los datos. No forzamos visibilidad aquí.
-    setTimeout(() => {
-        if (typeof window.cargarEnsayos === 'function') window.cargarEnsayos();
-    }, 500);
-
-    // Si viene QR, mostramos asistencia, si no, dejamos que el HTML muestre el Perfil
     const params = new URLSearchParams(window.location.search);
-    if (params.get('token')) {
-        window.mostrarTab('asistencia');
-    } else {
-        window.mostrarTab('perfil'); // Esto mostrará tu 'card-inner'
-    }
+    const tieneToken = params.get('token');
+
+    // Agrupamos la carga y la visibilidad con un delay seguro para la app anclada (PWA)
+    setTimeout(() => {
+        if (typeof window.cargarEnsayos === 'function') {
+            window.cargarEnsayos();
+            console.log("Cargando agenda de ensayos...");
+        }
+
+        // Forzamos la pestaña correcta únicamente cuando los datos e inicio ya están estables
+        if (tieneToken) {
+            window.mostrarTab('asistencia');
+        } else {
+            // Verificación extra: Si no hay carta de cumpleaños tapando la pantalla, abrimos perfil
+            const cumpleanosVisible = !document.getElementById('tab-cumpleanos').classList.contains('hidden');
+            if (!cumpleanosVisible) {
+                window.mostrarTab('perfil');
+            }
+        }
+    }, 600); // 600ms es el tiempo perfecto de sincronización en dispositivos móviles
 });
 
 
