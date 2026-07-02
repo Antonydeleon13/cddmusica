@@ -76,7 +76,8 @@
         <div class="relative w-full max-w-[280px] flex flex-col items-center">
             <img src="logodeep.png" class="h-32 w-auto mb-10 brightness-[10] drop-shadow-[0_0_20px_rgba(255,255,255,0.8)]">
             <input type="email" id="login-email" placeholder="Correo electrónico" 
-                   class="w-full bg-transparent border-b border-gray-600 text-white text-center pb-2 mb-6 outline-none focus:border-white text-sm">
+       onkeydown="if(event.key === 'Enter') window.loginVoluntario()"
+       class="w-full bg-transparent border-b border-gray-600 text-white text-center pb-2 mb-6 outline-none focus:border-white text-sm">
             <button type="button" onclick="window.loginVoluntario()" class="text-[10px] uppercase tracking-[0.4em] text-gray-400 hover:text-white transition-all">
                 Ingresar al Perfil
             </button>
