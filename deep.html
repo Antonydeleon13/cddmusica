@@ -77,6 +77,36 @@ select option[value=""] {
 }
 
 
+
+/* --- ESTILOS PARA EL FLIP CARD DEL SETLIST --- */
+.flip-card {
+    background-color: transparent;
+    perspective: 1000px;
+}
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+.flip-card.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+}
+.flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 0.75rem;
+}
+.flip-card-back {
+    transform: rotateY(180deg);
+}
+
+
+
 </style>
 </head>
 <body class="p-4 md:p-12">
@@ -1167,6 +1197,12 @@ window.cargarSetlist = async () => {
                     <option value="TEAM 3" class="bg-[#121212]">TEAM 3</option>
                     <option value="TEAM 4" class="bg-[#121212]">TEAM 4</option>
                 </select>
+
+<div class="mt-2">
+    <textarea id="setlist-escaleta-manual" placeholder="Escribe el orden del servicio aquí...&#10;Opening:&#10;• Padre - CDDM&#10;&#10;Worship:&#10;• Reino - CDDM" 
+              class="w-full p-2.5 bg-black/50 border border-gray-800 focus:border-amber-500/40 text-white rounded-xl text-[11px] h-24 font-mono placeholder-gray-700 resize-none outline-none transition-all"></textarea>
+</div>
+
             </div>
 
             <div class="flex gap-2">
@@ -1278,11 +1314,12 @@ window.guardarSetlist = async () => {
     }
 
     const datos = {
-        nombre,
-        equipo,
-        canciones: window.setlistTemporal,
-        fecha: new Date().toISOString()
-    };
+    nombre,
+    equipo,
+    canciones: window.setlistTemporal,
+    escaletaManual: document.getElementById('setlist-escaleta-manual').value, // <-- AGREGA ESTA LÍNEA
+    fecha: new Date().toISOString()
+};
 
     try {
         if (window.idSetlistEditando) {
@@ -1304,6 +1341,7 @@ window.guardarSetlist = async () => {
         // Limpiamos los inputs
         document.getElementById('nombre-setlist').value = '';
         document.getElementById('select-equipo').value = '';
+        document.getElementById('setlist-escaleta-manual').value = '';
 
         // Refrescamos la lista
         await window.cargarSetlistsGuardados();
@@ -1335,34 +1373,65 @@ window.cargarSetlistsGuardados = async () => {
     html += `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">`;
 
     snap.forEach(doc => {
-        const data = doc.data();
-        html += `
-            <div class="bg-[#121212] p-4 rounded-xl border border-gray-800/60 hover:border-amber-500/30 transition-all duration-300 group flex flex-col justify-between shadow-md">
-                <div>
-                    <div class="flex justify-between items-start gap-2 mb-3">
-                        <div class="cursor-pointer flex-grow" onclick="window.editarSetlist('${doc.id}')">
-                            <h4 class="text-white font-bold text-xs tracking-wide line-clamp-1">${data.nombre}</h4>
-                            <span class="bg-gold/10 text-gold text-[8px] px-2 py-0.5 rounded-md uppercase font-bold tracking-wider mt-1 inline-block">${data.equipo}</span>
-                        </div>
-                        
-                        <div class="flex items-center gap-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
-                            <button onclick="window.editarSetlist('${doc.id}')" class="hover:scale-110 transition-transform p-1">
-                                <img src="edit.png" class="w-3.5 h-3.5 invert opacity-70 hover:opacity-100 transition-opacity" alt="Editar">
-                            </button>
-                            <button onclick="window.abrirConfirmacion('Eliminar Setlist', '¿Estás seguro de eliminar este setlist?', () => window.eliminarSetlist('${doc.id}'))" 
-                                    class="text-gray-500 hover:text-red-500 font-semibold text-sm p-1 transition-colors leading-none">
-                                ✕
-                            </button>
-                        </div>
+    const data = doc.data();
+    html += `
+        <div class="bg-[#121212] p-4 rounded-xl border border-gray-800/60 hover:border-amber-500/30 transition-all duration-300 group flex flex-col justify-between shadow-md">
+            <div>
+                <div class="flex justify-between items-start gap-2 mb-3">
+                    <div class="cursor-pointer flex-grow" onclick="window.editarSetlist('${doc.id}')">
+                        <h4 class="text-white font-bold text-xs tracking-wide line-clamp-1">${data.nombre}</h4>
+                        <span class="bg-gold/10 text-gold text-[8px] px-2 py-0.5 rounded-md uppercase font-bold tracking-wider mt-1 inline-block">${data.equipo}</span>
                     </div>
                     
-                    <ul class="text-[10px] text-gray-400 space-y-1 mt-2 cursor-pointer hover:text-gray-300 transition-colors" onclick="window.editarSetlist('${doc.id}')">
-                        ${data.canciones.map((c, i) => `<li class="truncate"><span class="text-amber-500/60 font-mono">${i + 1}.</span> ${c.titulo}</li>`).join('')}
-                    </ul>
+                    <div class="flex items-center gap-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
+                        <button onclick="window.editarSetlist('${doc.id}')" class="hover:scale-110 transition-transform p-1">
+                            <img src="edit.png" class="w-3.5 h-3.5 invert opacity-70 hover:opacity-100 transition-opacity" alt="Editar">
+                        </button>
+                        <button onclick="window.abrirConfirmacion('Eliminar Setlist', '¿Estás seguro de eliminar este setlist?', () => window.eliminarSetlist('${doc.id}'))" 
+                                class="text-gray-500 hover:text-red-500 font-semibold text-sm p-1 transition-colors leading-none">
+                            ✕
+                        </button>
+                    </div>
                 </div>
+                
+                <div class="flip-card h-40 w-full" id="card-setlist-${doc.id}" onclick="event.stopPropagation();">
+                    <div class="flip-card-inner w-full h-full">
+                        
+                        <div class="flip-card-front bg-black/40 border border-gray-800/80 p-3 rounded-xl flex flex-col justify-between text-left w-full h-full">
+                            <div class="overflow-y-auto h-24 pr-1">
+                                <span class="text-[8px] text-gray-600 uppercase tracking-widest block mb-1.5 font-sans font-bold">SETLIST</span>
+                                <div class="text-[11px] text-gray-300 font-sans whitespace-pre-line leading-relaxed tracking-wide">
+                                    ${data.escaletaManual ? data.escaletaManual : '<span class="text-gray-700 italic">No hay notas manuscritas para este servicio.</span>'}
+                                </div>
+                            </div>
+                            <button onclick="document.getElementById('card-setlist-${doc.id}').classList.add('flipped'); event.stopPropagation();" 
+                                    class="w-full bg-gold/5 border border-gold/20 hover:bg-gold/10 text-gold text-[9px] font-bold uppercase tracking-widest py-1.5 rounded-lg transition-all text-center shrink-0">
+                                Ir al reproductor →
+                            </button>
+                        </div>
+                        
+                        <div class="flip-card-back bg-[#161616] border border-gold/20 p-3 rounded-xl flex flex-col justify-between text-left w-full h-full">
+                            <div class="flex flex-col h-full justify-between">
+                                <div class="flex justify-between items-center mb-2 border-b border-gray-900 pb-1 shrink-0">
+                                    <span class="text-[8px] text-gold uppercase tracking-widest font-sans font-bold">🎵 Lista de Reproducción</span>
+                                    <button onclick="document.getElementById('card-setlist-${doc.id}').classList.remove('flipped'); event.stopPropagation();" 
+                                            class="text-[9px] text-gray-500 hover:text-white font-sans">
+                                        ← Volver
+                                    </button>
+                                </div>
+                                <ul class="text-[10px] text-gray-400 space-y-1 overflow-y-auto h-24 pr-1" onclick="window.editarSetlist('${doc.id}')">
+                                    ${data.canciones.map((c, i) => `<li class="truncate"><span class="text-amber-500/60 font-mono">${i + 1}.</span> ${c.titulo}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
-        `;
-    });
+        </div>
+    `;
+});
 
     html += `</div>`; // Cerramos el div del grid
     contenedor.innerHTML = html;
@@ -1382,7 +1451,11 @@ window.editarSetlist = async (id) => {
             if (selectEquipo) selectEquipo.value = data.equipo;
 
             const inputNombre = document.getElementById('nombre-setlist');
-            if (inputNombre) inputNombre.value = data.nombre;
+if (inputNombre) inputNombre.value = data.nombre;
+
+// === AGREGA ESTAS DOS LÍNEAS AQUÍ ===
+const inputEscaleta = document.getElementById('setlist-escaleta-manual');
+if (inputEscaleta) inputEscaleta.value = data.escaletaManual || '';
             
             window.setlistTemporal = data.canciones;
             window.renderizarListaTemporal(); 
