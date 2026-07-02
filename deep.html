@@ -99,7 +99,8 @@ select option[value=""] {
         
         <div class="relative w-full mb-8">
             <input type="password" id="admin-pass" placeholder="PASSWORD" 
-                   class="w-full bg-transparent border-b border-gray-600 text-white text-center pb-3 outline-none focus:border-white transition-all duration-500 placeholder:text-[10px] placeholder:tracking-[0.3em] placeholder:text-gray-500">
+       onkeydown="if(event.key === 'Enter') verificarLogin()"
+       class="w-full bg-transparent border-b border-gray-600 text-white text-center pb-3 outline-none focus:border-white transition-all duration-500 placeholder:text-[10px] placeholder:tracking-[0.3em] placeholder:text-gray-500">
         </div>
 
         <button onclick="verificarLogin()" 
