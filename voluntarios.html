@@ -66,6 +66,35 @@
         object-fit: cover !important;
     }
 
+
+
+    /* --- ESTILOS PARA EL FLIP CARD DEL SETLIST --- */
+.flip-card {
+    background-color: transparent;
+    perspective: 1000px;
+}
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+.flip-card.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+}
+.flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 0.75rem;
+}
+.flip-card-back {
+    transform: rotateY(180deg);
+}
+
 </style>
 
 
@@ -219,9 +248,10 @@
 </div>
 
 
-<div id="tab-setlist" class="hidden bg-premium p-6 rounded-2xl border border-gray-800">
-    <h3 class="text-gold font-bold mb-4 uppercase text-xs text-center">Setlist Actual</h3>
-    <div id="lista-canciones" class="space-y-2 text-[11px]">
+<div id="tab-setlist" class="hidden bg-premium p-6 rounded-2xl border border-gray-800 max-w-md mx-auto">
+    <h3 class="text-gold font-bold mb-5 uppercase text-xs text-center tracking-widest">- Setlist del Equipo</h3>
+    <div id="lista-canciones" class="space-y-4">
+        </div>
 </div>
 </div>
 
@@ -798,84 +828,123 @@ async function cargarEnsayos() {
 }
 
 async function cargarSetlist() {
-const lista = document.getElementById('lista-canciones');
-if (!lista) return;
-if (
-!currentUser ||
-!currentUser.equipo ||
-currentUser.equipo === "Sin equipo"
-) {
-lista.innerHTML = `
-<div class="text-center py-10">
-<p class="text-gray-500 uppercase tracking-widest text-xs">
-Aún no perteneces a un team.
-</p>
-<p class="text-gray-600 text-sm mt-4 leading-7">
-Cuando seas asignado a un equipo,
-aquí aparecerá el setlist correspondiente para que puedas preparar tus servicios y ensayos.
-</p>
-</div>
-`;
-return;
-}
-try {
-const q = query(collection(db, "setlists"), where("equipo", "==", currentUser.equipo));
-const snap = await getDocs(q);
-let html = '';
-for (const setlistDoc of snap.docs) {
-const data = setlistDoc.data();
-const cancionesDetalladas = await Promise.all((data.canciones || []).map(async (c) => {
-const songSnap = await getDoc(doc(db, "songs", c.id));
-return songSnap.exists() ? { ...c, ...songSnap.data() } : c;
-}));
-html += `
-<div class="bg-[#121212] border border-gray-800 rounded-lg p-4 mb-6">
-<h4 class="text-gold font-bold mb-4 uppercase text-[11px] tracking-widest">${data.nombre}</h4>
-${cancionesDetalladas.map((c, i) => {
-const songId = `song-${setlistDoc.id}-${i}`;
-return `
-<div class="border-b border-gray-800 last:border-0">
-<button onclick="toggleAcordeon('${songId}')" class="w-full py-4 flex justify-between items-center text-white font-bold hover:text-gold transition">
-<div class="flex flex-col items-start">
-<span class="text-[13px]">${i + 1}. ${c.titulo}</span>
-<div class="flex gap-3 mt-1">
-${c.nota ? `<span class="text-[9px] text-gray-500 uppercase">Nota: ${c.nota}</span>` : ''}
-${c.bpm ? `<span class="text-[9px] text-gray-500 uppercase">${c.bpm} BPM</span>` : ''}
-</div>
-</div>
-<span class="text-[10px] opacity-50">▼</span>
-</button>
-<div id="${songId}" class="acordeon-contenido hidden pb-4 px-2 bg-transparent rounded">
-${c.audioUrl ? `
-<div class="mt-2 mb-4"> 
-<input type="range" id="progress-${songId}" value="0" max="100" class="w-full h-1 bg-gray-800 rounded-full appearance-none cursor-pointer accent-gold mb-5">
-<div class="flex items-center justify-between px-2">
-<button onclick="controlAudio('mute', '${songId}')" class="w-10 h-10 flex items-center justify-center text-white/40 hover:text-white transition-colors">
-<img id="icon-volumen-${songId}" src="sound.png" class="w-5 h-5 invert brightness-200">
-</button>
-<button onclick="controlAudio('play', '${songId}')" class="w-12 h-12 flex items-center justify-center bg-white rounded-full hover:scale-105 transition-transform shadow-none">
-<span id="icon-play-${songId}" class="text-lg text-black" style="margin-left: 2px;">▶</span>
-</button>
-<div id="time-display-${songId}" class="w-10 text-right text-[10px] font-mono text-white/30">0:00</div>
-</div>
-<audio id="audio-${songId}" src="${c.audioUrl}"></audio>
-</div>
-` : ''}
-${c.pdfUrl ? `
-<button onclick="window.open('${c.pdfUrl}', '_blank')" class="mt-1 w-full py-2 border border-yellow-500/20 text-yellow-500 text-[10px] font-bold rounded uppercase hover:bg-yellow-500 hover:text-black transition">
-Ver Partitura (PDF)
-</button>
-` : ''}
-</div>
-</div>
-`;
-}).join('')}
-</div>`;
-}
-lista.innerHTML = html;
-} catch (err) {
-console.error("Error cargando setlist:", err);
-}
+    const lista = document.getElementById('lista-canciones');
+    if (!lista) return;
+    if (
+        !currentUser ||
+        !currentUser.equipo ||
+        currentUser.equipo === "Sin equipo"
+    ) {
+        lista.innerHTML = `
+        <div class="text-center py-10">
+        <p class="text-gray-500 uppercase tracking-widest text-xs">
+        Aún no perteneces a un team.
+        </p>
+        <p class="text-gray-600 text-sm mt-4 leading-7">
+        Cuando seas asignado a un equipo,
+        aquí aparecerá el setlist correspondiente para que puedas preparar tus servicios y ensayos.
+        </p>
+        </div>
+        `;
+        return;
+    }
+    try {
+        const q = query(collection(db, "setlists"), where("equipo", "==", currentUser.equipo));
+        const snap = await getDocs(q);
+        let html = '';
+        for (const setlistDoc of snap.docs) {
+            const data = setlistDoc.data();
+            const cancionesDetalladas = await Promise.all((data.canciones || []).map(async (c) => {
+                const songSnap = await getDoc(doc(db, "songs", c.id));
+                return songSnap.exists() ? { ...c, ...songSnap.data() } : c;
+            }));
+            
+            html += `
+            <div class="bg-[#121212] border border-gray-800 rounded-lg p-4 mb-6 shadow-md">
+                
+                <!-- Encabezado superior fijo (Tu diseño original) -->
+                <div class="flex justify-between items-center border-b border-gray-900 pb-2 mb-4">
+                    <h4 class="text-gold font-bold uppercase text-[11px] tracking-widest">${data.nombre}</h4>
+                    <span class="text-[8px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/20 uppercase font-bold font-sans tracking-wider">
+                        ${data.canciones ? data.canciones.length : 0} Canciones
+                    </span>
+                </div>
+
+                <!-- VISTA A: Escaleta escrita a mano (Se muestra por defecto y crece libremente) -->
+                <div id="vista-escaleta-${setlistDoc.id}" class="block space-y-4">
+                    <div class="text-left">
+                        <span class="text-[8px] text-gray-600 uppercase tracking-widest block mb-2 font-sans font-bold">SETLIST</span>
+                        <div class="text-[12px] text-gray-300 font-sans whitespace-pre-line leading-relaxed tracking-wide">
+                            ${data.escaletaManual ? data.escaletaManual : '<span class="text-gray-700 italic">No hay notas manuscritas para este servicio.</span>'}
+                        </div>
+                    </div>
+                    
+                    <button onclick="document.getElementById('vista-escaleta-${setlistDoc.id}').style.display='none'; document.getElementById('vista-reproductor-${setlistDoc.id}').style.display='block'; event.stopPropagation();" 
+                            class="w-full mt-4 bg-gold/5 border border-gold/20 hover:bg-gold/10 text-gold text-[9px] font-bold uppercase tracking-widest py-2.5 rounded-lg transition-all text-center block">
+                        Ir al reproductor →
+                    </button>
+                </div>
+                
+                <!-- VISTA B: Tu lista de reproducción original (Oculta por defecto hasta presionar el botón) -->
+                <div id="vista-reproductor-${setlistDoc.id}" class="hidden space-y-4">
+                    <div class="flex justify-between items-center border-b border-gray-900/60 pb-1">
+                        <span class="text-[8px] text-gold uppercase tracking-widest font-sans font-bold">SETLIST</span>
+                        <button onclick="document.getElementById('vista-reproductor-${setlistDoc.id}').style.display='none'; document.getElementById('vista-escaleta-${setlistDoc.id}').style.display='block'; event.stopPropagation();" 
+                                class="text-[9px] text-gray-500 hover:text-white font-sans transition-colors">
+                            ← Volver a la Nota
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        ${cancionesDetalladas.map((c, i) => {
+                            const songId = `song-${setlistDoc.id}-${i}`;
+                            return `
+                            <div class="border-b border-gray-800 last:border-0" onclick="event.stopPropagation();">
+                                <button onclick="window.toggleAcordeon('${songId}'); event.stopPropagation();" class="w-full py-3 flex justify-between items-center text-white font-bold hover:text-gold transition">
+                                    <div class="flex flex-col items-start truncate max-w-[80%]">
+                                        <span class="text-[12px] truncate">${i + 1}. ${c.titulo}</span>
+                                        <div class="flex gap-3 mt-0.5">
+                                            ${c.notaPersonalizada || c.nota ? `<span class="text-[8.5px] text-gray-500 uppercase">Tono: ${c.notaPersonalizada || c.nota}</span>` : ''}
+                                            ${c.bpm ? `<span class="text-[8.5px] text-gray-500 uppercase">${c.bpm} BPM</span>` : ''}
+                                        </div>
+                                    </div>
+                                    <span class="text-[9px] opacity-50">▼</span>
+                                </button>
+                                
+                                <div id="${songId}" class="acordeon-contenido hidden pb-4 px-2 bg-transparent rounded" onclick="event.stopPropagation();">
+                                    ${c.audioUrl ? `
+                                    <div class="mt-2 mb-4"> 
+                                    <input type="range" id="progress-${songId}" value="0" max="100" class="w-full h-1 bg-gray-800 rounded-full appearance-none cursor-pointer accent-gold mb-5">
+                                    <div class="flex items-center justify-between px-2">
+                                    <button onclick="window.controlAudio('mute', '${songId}'); event.stopPropagation();" class="w-10 h-10 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                                    <img id="icon-volumen-${songId}" src="sound.png" class="w-5 h-5 invert brightness-200">
+                                    </button>
+                                    <button onclick="window.controlAudio('play', '${songId}'); event.stopPropagation();" class="w-12 h-12 flex items-center justify-center bg-white rounded-full hover:scale-105 transition-transform shadow-none">
+                                    <span id="icon-play-${songId}" class="text-lg text-black" style="margin-left: 2px;">▶</span>
+                                    </button>
+                                    <div id="time-display-${songId}" class="w-10 text-right text-[10px] font-mono text-white/30">0:00</div>
+                                    </div>
+                                    <audio id="audio-${songId}" src="${c.audioUrl}"></audio>
+                                    </div>
+                                    ` : ''}
+                                    ${c.pdfUrl ? `
+                                    <button onclick="window.open('${c.pdfUrl}', '_blank'); event.stopPropagation();" class="mt-1 w-full py-2 border border-yellow-500/20 text-yellow-500 text-[10px] font-bold rounded uppercase hover:bg-yellow-500 hover:text-black transition">
+                                    Ver Partitura (PDF)
+                                    </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+
+            </div>`;
+        }
+        lista.innerHTML = html;
+    } catch (err) {
+        console.error("Error cargando setlist:", err);
+    }
 }
 
 
