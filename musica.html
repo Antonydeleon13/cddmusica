@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+   <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+<title>Deepartment - Maquetas</title>
+<link rel="manifest" href="manifest.json?v=2">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Deepartment">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+
+<link rel="apple-touch-icon" href="./icon.png">
+
+<script src="https://cdn.tailwindcss.com"></script>
+   <style>
+    body { background-color: #050505; color: #e5e5e5; font-family: sans-serif; }
+    
+    .bg-premium { 
+        background: rgba(18, 18, 18, 0.7); 
+        backdrop-filter: blur(12px); 
+        border: 1px solid rgba(255, 255, 255, 0.05); 
+    }
+    
+    .text-gold { color: #ffd95a; }
+
+    .acordeon-contenido {
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+</style>
+</head>
+<body class="min-h-screen">
+
+    <div id="login-view" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black">
+        <div class="relative w-full max-w-[280px] flex flex-col items-center">
+            <img src="logodeep.png" class="h-32 w-auto mb-10 brightness-[10] drop-shadow-[0_0_20px_rgba(255,255,255,0.8)]">
+            <input type="email" id="login-email" placeholder="Correo electrónico" 
+       onkeydown="if(event.key === 'Enter') window.loginVoluntario()"
+       class="w-full bg-transparent border-b border-gray-600 text-white text-center pb-2 mb-6 outline-none focus:border-white text-sm">
+            <button type="button" onclick="window.loginVoluntario()" class="text-[10px] uppercase tracking-[0.4em] text-gray-400 hover:text-white transition-all">
+                Ingresar al Área de Música
+            </button>
+        </div>
+    </div>
+
+   <div id="panel-view" class="hidden p-6 pb-24 mx-auto w-full max-w-md md:max-w-4xl md:pb-6">
+    
+    <div class="flex justify-end items-center mb-6 pt-[env(safe-area-inset-top,24px)]">
+    <button onclick="cerrarSesion()"
+        class="text-[10px] uppercase tracking-[0.25em] text-gray-500 hover:text-white transition-colors duration-200">
+        Salir
+    </button>
+</div>
+
+<!-- Única pestaña activa: Maquetas -->
+<div id="tab-maquetas" class="bg-premium p-6 rounded-2xl border border-gray-800 max-w-md mx-auto space-y-6">
+    <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+        <h3 class="text-gold font-bold uppercase text-xs tracking-widest">- Maquetas & Voicenotes</h3>
+        <button id="btn-nueva-maqueta" onclick="toggleFormMaqueta()" class="hidden text-[9px] uppercase tracking-wider bg-gold/10 text-gold border border-gold/30 px-3 py-1.5 rounded-lg hover:bg-gold/20 transition-all">
+            + Subir Maqueta
+        </button>
+    </div>
+
+    <div id="form-subir-maqueta" class="hidden bg-[#121212] p-4 rounded-xl border border-gray-800 space-y-4">
+        <h4 class="text-white text-xs font-bold uppercase tracking-wider">Nueva Maqueta / Bounce</h4>
+        <div>
+            <label class="block text-[10px] text-gray-400 uppercase mb-1">Título de la Canción / Idea</label>
+            <input type="text" id="maq-titulo" placeholder="Ej. Nueva canción en Re" class="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg p-2.5 text-white text-xs outline-none focus:border-gold">
+        </div>
+        <div>
+            <label class="block text-[10px] text-gray-400 uppercase mb-1">Nota o Descripción corta</label>
+            <textarea id="maq-descripcion" placeholder="Ej. Idea inicial grabada con guitarra acústica, falta coro..." class="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg p-2.5 text-white text-xs outline-none focus:border-gold h-20 resize-none"></textarea>
+        </div>
+        <div>
+            <label class="block text-[10px] text-gray-400 uppercase mb-1">Archivo de Audio (Voicenote / MP3 / Wav)</label>
+            <input type="file" id="maq-archivo" accept="audio/*" class="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gold file:text-black hover:file:bg-gold/80 cursor-pointer">
+        </div>
+        <div class="flex gap-2 pt-2">
+            <button onclick="subirMaquetaFirebase()" id="btn-subir-maq" class="flex-1 bg-gold text-black font-bold text-xs uppercase py-2.5 rounded-lg hover:bg-[#e6c250] transition">
+                Publicar Maqueta
+            </button>
+            <button onclick="toggleFormMaqueta()" class="bg-gray-800 text-gray-300 text-xs px-4 py-2.5 rounded-lg hover:bg-gray-700 transition">
+                Cancelar
+            </button>
+        </div>
+    </div>
+
+    <div id="lista-maquetas" class="space-y-4">
+        <p class="text-[10px] text-gray-500 text-center py-6">Cargando maquetas...</p>
+    </div>
+</div>
+
+</div>
+
+<script type="module">
+   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { 
+    getFirestore, 
+    collection, 
+    query, 
+    where, 
+    getDocs, 
+    addDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import { 
+    getStorage, 
+    ref, 
+    uploadBytes, 
+    getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+const firebaseConfig = { 
+    apiKey: "AIzaSyBMp-j9Mk6VZ68SO8dUzgZgfXodIM9Ibys", 
+    authDomain: "cddmusica-d8f92.firebaseapp.com", 
+    projectId: "cddmusica-d8f92", 
+    storageBucket: "cddmusica-d8f92.firebasestorage.app", 
+    messagingSenderId: "490870638033", 
+    appId: "1:490870638033:web:af7075a3da6be99ca1ccf" 
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+window.db = db;
+window.storage = storage;
+
+let currentUser = null;
+
+// Lista de correos autorizados para subir maquetas / voice notes
+const EMAILS_AUTORIZADOS_MAQUETAS = [
+    "tucorreo@ejemplo.com", // <-- REEMPLAZA ESTO CON LOS CORREOS DE TU GRUPO
+    "lider@ejemplo.com"
+];
+
+window.loginVoluntario = async () => {
+    const emailInput = document.getElementById('login-email').value.toLowerCase().trim();
+    if (!emailInput) return alert("Ingresa un correo");
+
+    try {
+        const q = query(collection(db, "voluntarios"), where("email", "==", emailInput));
+        const snap = await getDocs(q);
+
+        if (!snap.empty) {
+            currentUser = { id: snap.docs[0].id, ...snap.docs[0].data() };
+            
+            localStorage.setItem('deep_user_email', emailInput);
+            
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('panel-view').classList.remove('hidden');
+            
+            verificarPermisoMaquetas(emailInput);
+            cargarMaquetas();
+            
+        } else {
+            alert("Correo no encontrado.");
+        }
+    } catch (err) {
+        console.error("Error al buscar:", err);
+        alert("Error de conexión.");
+    }
+};
+
+function verificarPermisoMaquetas(email) {
+    const btnSubir = document.getElementById('btn-nueva-maqueta');
+    if (!btnSubir) return;
+
+    if (EMAILS_AUTORIZADOS_MAQUETAS.includes(email) || currentUser.esLider || currentUser.subirMaquetas) {
+        btnSubir.classList.remove('hidden');
+    } else {
+        btnSubir.classList.add('hidden');
+    }
+}
+
+window.toggleFormMaqueta = () => {
+    const form = document.getElementById('form-subir-maqueta');
+    if (form) {
+        form.classList.toggle('hidden');
+    }
+};
+
+window.subirMaquetaFirebase = async () => {
+    const tituloInput = document.getElementById('maq-titulo').value.trim();
+    const descInput = document.getElementById('maq-descripcion').value.trim();
+    const fileInput = document.getElementById('maq-archivo');
+    const btnSubir = document.getElementById('btn-subir-maq');
+
+    if (!tituloInput) {
+        alert("Por favor ingresa un título para la maqueta.");
+        return;
+    }
+    if (fileInput.files.length === 0) {
+        alert("Por favor selecciona un archivo de audio.");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    btnSubir.disabled = true;
+    btnSubir.innerText = "Subiendo audio...";
+
+    try {
+        const storageRef = ref(storage, `maquetas/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        const downloadUrl = await getDownloadURL(snapshot.ref);
+
+        await addDoc(collection(db, "maquetas"), {
+            titulo: tituloInput,
+            descripcion: descInput,
+            audioUrl: downloadUrl,
+            autor: currentUser.nickname || currentUser.nombre || "Anónimo",
+            fechaRegistro: new Date().toISOString()
+        });
+
+        alert("¡Maqueta publicada con éxito!");
+        
+        document.getElementById('maq-titulo').value = "";
+        document.getElementById('maq-descripcion').value = "";
+        fileInput.value = "";
+        toggleFormMaqueta();
+
+        cargarMaquetas();
+    } catch (error) {
+        console.error("Error al subir maqueta:", error);
+        alert("Hubo un error al subir el archivo. Inténtalo de nuevo.");
+    } finally {
+        btnSubir.disabled = false;
+        btnSubir.innerText = "Publicar Maqueta";
+    }
+};
+
+async function cargarMaquetas() {
+    const contenedor = document.getElementById('lista-maquetas');
+    if (!contenedor) return;
+
+    contenedor.innerHTML = '<p class="text-[10px] text-gray-500 text-center py-6">Cargando maquetas y voicenotes...</p>';
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "maquetas"));
+        if (querySnapshot.empty) {
+            contenedor.innerHTML = '<p class="text-[10px] text-gray-500 text-center py-6">No hay maquetas o voicenotes subidas aún.</p>';
+            return;
+        }
+
+        let lista = [];
+        querySnapshot.forEach(docSnap => {
+            lista.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        lista.sort((a, b) => new Date(b.fechaRegistro) - new Date(a.fechaRegistro));
+
+        let html = '';
+        lista.forEach((m) => {
+            const maquetaId = `maqueta-${m.id}`;
+            const fechaFormateada = m.fechaRegistro ? new Date(m.fechaRegistro).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '';
+
+            html += `
+            <div class="bg-[#121212] border border-gray-800 rounded-lg p-4 shadow-md">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h4 class="text-white font-bold text-xs uppercase tracking-wider">${m.titulo}</h4>
+                        <p class="text-[9px] text-gray-500 mt-0.5">Subido por: <span class="text-gold">${m.autor || 'Equipo'}</span> ${fechaFormateada ? '· ' + fechaFormateada : ''}</p>
+                    </div>
+                </div>
+
+                ${m.descripcion ? `<p class="text-[11px] text-gray-300 mt-2 mb-3 leading-relaxed whitespace-pre-line">${m.descripcion}</p>` : ''}
+
+                <div class="mt-3 pt-2 border-t border-gray-900">
+                    <input type="range" id="progress-${maquetaId}" value="0" max="100" class="w-full h-1 bg-gray-800 rounded-full appearance-none cursor-pointer accent-gold mb-3">
+                    <div class="flex items-center justify-between px-1">
+                        <button onclick="window.controlAudio('mute', '${maquetaId}'); event.stopPropagation();" class="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                            <img id="icon-volumen-${maquetaId}" src="sound.png" class="w-4 h-4 invert brightness-200">
+                        </button>
+                        <button onclick="window.controlAudio('play', '${maquetaId}'); event.stopPropagation();" class="w-10 h-10 flex items-center justify-center bg-white rounded-full hover:scale-105 transition-transform shadow-none">
+                            <span id="icon-play-${maquetaId}" class="text-sm text-black" style="margin-left: 2px;">▶</span>
+                        </button>
+                        <div id="time-display-${maquetaId}" class="w-10 text-right text-[10px] font-mono text-white/30">0:00</div>
+                    </div>
+                    <audio id="audio-${maquetaId}" src="${m.audioUrl}"></audio>
+                </div>
+            </div>
+            `;
+        });
+
+        contenedor.innerHTML = html;
+    } catch (error) {
+        console.error("Error al cargar maquetas:", error);
+        contenedor.innerHTML = '<p class="text-red-500 text-xs text-center py-6">Error al cargar las maquetas.</p>';
+    }
+}
+
+window.controlAudio = (accion, id) => {
+    const audio = document.getElementById(`audio-${id}`);
+    const progress = document.getElementById(`progress-${id}`);
+    const timeDisplay = document.getElementById(`time-display-${id}`);
+    const playIcon = document.getElementById(`icon-play-${id}`);
+    const volIcon = document.getElementById(`icon-volumen-${id}`);
+
+    if (accion === 'play') {
+        if (audio.paused) {
+            audio.play();
+            playIcon.innerText = "❚❚"; 
+            playIcon.style.fontSize = "14px";
+        } else {
+            audio.pause();
+            playIcon.innerText = "▶";
+            playIcon.style.fontSize = "16px";
+        }
+    } 
+    else if (accion === 'mute') {
+        audio.muted = !audio.muted;
+        volIcon.src = audio.muted ? "silence.png" : "sound.png";
+    }
+
+    audio.ontimeupdate = () => {
+        const valor = (audio.currentTime / audio.duration) * 100;
+        progress.value = valor || 0;
+        
+        const mins = Math.floor(audio.currentTime / 60);
+        const secs = Math.floor(audio.currentTime % 60);
+        timeDisplay.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    };
+
+    progress.oninput = () => {
+        audio.currentTime = (progress.value / 100) * audio.duration;
+    };
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const emailGuardado = localStorage.getItem('deep_user_email');
+    if (emailGuardado) {
+        document.getElementById('login-email').value = emailGuardado;
+        window.loginVoluntario();
+    }
+});
+
+window.cerrarSesion = () => {
+    localStorage.removeItem('deep_user_email');
+    location.reload(); 
+};
+</script>
+
+</body>
+</html>
