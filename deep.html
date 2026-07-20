@@ -172,6 +172,7 @@ select option[value=""] {
     <button data-vista="ensayos" onclick="cambiarVista('ensayos')" class="menu-btn px-6 py-2 border border-gray-800 hover:border-gold transition uppercase text-xs">Ensayos</button>
     <button data-vista="logistica" onclick="cambiarVista('logistica')" class="menu-btn px-6 py-2 border border-gray-800 hover:border-gold transition uppercase text-xs">Estadística</button>
     <button data-vista="noticias" onclick="cambiarVista('noticias')" class="menu-btn px-6 py-2 border border-gray-800 hover:border-gold transition uppercase text-xs">Noticias</button>
+    <button data-vista="maquetas" onclick="cambiarVista('maquetas')" class="menu-btn px-6 py-2 border border-gray-800 hover:border-gold transition uppercase text-xs">Maquetas</button>
 </div>
 
         
@@ -2207,6 +2208,54 @@ if (vista === "asistencia") {
     cargarSetlist();
     cargarSetlistsGuardados();
 }
+
+
+
+else if (vista === 'maquetas') {
+    contenedor.innerHTML = `
+        <div class="max-w-xl mx-auto p-6 bg-[#0d0d0d] rounded-2xl border border-gray-800 shadow-2xl space-y-6">
+            <h3 class="text-gold font-bold uppercase tracking-widest text-sm border-b border-gray-800 pb-2">Subir Nueva Maqueta / Voicenote</h3>
+            
+            <form id="form-maqueta" class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-gray-500 text-[10px] uppercase tracking-widest block font-bold">Título de la Canción / Idea</label>
+                    <input type="text" id="admin-maq-titulo" placeholder="Ej. Nueva melodía en Re" required
+                           class="w-full p-3 bg-[#161616] border border-gray-800 text-white rounded-lg focus:border-gold outline-none text-xs">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-gray-500 text-[10px] uppercase tracking-widest block font-bold">Nota o Descripción</label>
+                    <textarea id="admin-maq-descripcion" placeholder="Detalles de la maqueta..." 
+                              class="w-full p-3 bg-[#161616] border border-gray-800 text-white rounded-lg focus:border-gold outline-none text-xs h-20 resize-none"></textarea>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-gray-500 text-[10px] uppercase tracking-widest block font-bold">Seleccionar Archivo de Audio (MP3 / M4A / WAV)</label>
+                    <input type="file" id="admin-maq-file" accept="audio/*" required
+                           class="w-full text-xs text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-white file:text-black file:font-bold hover:file:bg-gray-200 cursor-pointer transition-all">
+                </div>
+                
+                <div id="progreso-maqueta" class="hidden w-full bg-gray-800 rounded-full h-3">
+                    <div id="barra-maqueta" class="bg-gold h-3 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+                
+                <button type="button" onclick="window.subirMaquetaAdmin()" id="btn-subir-maq-admin"
+                        class="w-full py-3 bg-[#D4AF37] text-black font-bold uppercase text-xs tracking-widest hover:bg-yellow-600 transition-all rounded-xl shadow-lg border border-gold">
+                    Publicar Maqueta
+                </button>
+            </form>
+        </div>
+
+        <div class="mt-10">
+            <h3 class="text-white font-semibold text-xs uppercase tracking-widest border-b border-gray-800 pb-2 mb-4">Maquetas Publicadas</h3>
+            <div id="lista-maquetas-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Se cargará dinámicamente -->
+            </div>
+        </div>
+    `;
+    window.cargarMaquetasAdmin();
+}
+
 
 else if (vista === 'noticias') {
     contenedor.innerHTML = `
@@ -4372,6 +4421,139 @@ window.eliminarNoticia = async function(id) {
         window.showToast("Error al eliminar");
     }
 };
+
+
+
+// 1. Subir Maqueta desde el Admin
+window.subirMaquetaAdmin = async function() {
+    const tituloInput = document.getElementById('admin-maq-titulo');
+    const descInput = document.getElementById('admin-maq-descripcion');
+    const fileInput = document.getElementById('admin-maq-file');
+    const btn = document.getElementById('btn-subir-maq-admin');
+    const contenedorProgreso = document.getElementById('progreso-maqueta');
+    const barra = document.getElementById('barra-maqueta');
+
+    if (!tituloInput.value.trim() || fileInput.files.length === 0) {
+        window.showToast("Por favor ingresa un título y selecciona un archivo de audio.");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    btn.disabled = true;
+    btn.innerText = "Subiendo audio...";
+    contenedorProgreso.classList.remove('hidden');
+
+    try {
+        // Subir a Firebase Storage dentro de la carpeta 'maquetas/'
+        const nombreUnico = `${Date.now()}_${file.name}`;
+        const storageRef = window.ref(window.storage, 'maquetas/' + nombreUnico);
+        const uploadTask = window.uploadBytesResumable(storageRef, file);
+
+        await new Promise((resolve, reject) => {
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    barra.style.width = progress + '%';
+                }, 
+                (error) => reject(error), 
+                () => resolve()
+            );
+        });
+
+        const urlDescarga = await window.getDownloadURL(uploadTask.snapshot.ref);
+
+        // Guardar registro en la colección 'maquetas' de Firestore
+        await window.addDoc(window.collection(window.db, "maquetas"), {
+            titulo: tituloInput.value.trim(),
+            descripcion: descInput.value.trim() || "",
+            audioUrl: urlDescarga,
+            autor: "Administración",
+            fechaRegistro: new Date().toISOString()
+        });
+
+        window.showToast("¡Maqueta publicada con éxito!");
+        tituloInput.value = "";
+        descInput.value = "";
+        fileInput.value = "";
+        contenedorProgreso.classList.add('hidden');
+        barra.style.width = '0%';
+        
+        // Recargar la lista de administración
+        window.cargarMaquetasAdmin();
+
+    } catch (error) {
+        console.error("Error al subir maqueta:", error);
+        window.showToast("Error al subir el archivo de audio");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Publicar Maqueta";
+    }
+};
+
+// 2. Cargar lista de maquetas en el Admin
+window.cargarMaquetasAdmin = async function() {
+    const listaContainer = document.getElementById('lista-maquetas-admin');
+    if (!listaContainer) return;
+
+    listaContainer.innerHTML = '<p class="text-gray-500 text-xs italic col-span-full text-center">Cargando maquetas...</p>';
+
+    try {
+        const snap = await window.getDocs(window.collection(window.db, "maquetas"));
+        listaContainer.innerHTML = "";
+
+        if (snap.empty) {
+            listaContainer.innerHTML = '<p class="text-gray-600 text-xs italic col-span-full text-center">No hay maquetas o voicenotes subidas aún.</p>';
+            return;
+        }
+
+        let lista = [];
+        snap.forEach(docSnap => {
+            lista.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        // Ordenar más recientes primero
+        lista.sort((a, b) => new Date(b.fechaRegistro) - new Date(a.fechaRegistro));
+
+        lista.forEach(m => {
+            listaContainer.innerHTML += `
+                <div class="bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-3">
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <h4 class="text-white font-bold text-xs uppercase tracking-wider">${m.titulo}</h4>
+                            <button onclick="window.eliminarMaquetaAdmin('${m.id}')" class="text-red-400 hover:text-red-300 text-[10px] font-bold uppercase transition-colors">
+                                Eliminar
+                            </button>
+                        </div>
+                        ${m.descripcion ? `<p class="text-[11px] text-gray-400 mt-1">${m.descripcion}</p>` : ''}
+                    </div>
+                    
+                    <audio controls class="w-full h-8 opacity-80 mt-2">
+                        <source src="${m.audioUrl}" type="audio/mpeg">
+                        Tu navegador no soporta audio.
+                    </audio>
+                </div>
+            `;
+        });
+    } catch (e) {
+        console.error("Error cargando maquetas admin:", e);
+    }
+};
+
+// 3. Eliminar Maqueta desde el Admin
+window.eliminarMaquetaAdmin = async function(id) {
+    const confirmado = await window.pedirConfirmacion();
+    if (!confirmado) return;
+
+    try {
+        await window.deleteDoc(window.doc(window.db, "maquetas", id));
+        window.showToast("Maqueta eliminada correctamente");
+        window.cargarMaquetasAdmin();
+    } catch (e) {
+        console.error("Error al eliminar maqueta:", e);
+        window.showToast("Error al eliminar el archivo");
+    }
+};
+
 
 
 window.cargarAsistenciaHoy = cargarAsistenciaHoy;
