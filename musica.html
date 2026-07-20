@@ -57,13 +57,17 @@
     </button>
 </div>
 
-<!-- Única pestaña activa: Maquetas -->
+<!-- Pestaña Maquetas con Acordeón y Logo -->
 <div id="tab-maquetas" class="bg-premium p-6 rounded-2xl border border-gray-800 max-w-md mx-auto space-y-6">
-    <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-        <h3 class="text-gold font-bold uppercase text-xs tracking-widest">- Maquetas & Voicenotes</h3>
-        <button id="btn-nueva-maqueta" onclick="toggleFormMaqueta()" class="hidden text-[9px] uppercase tracking-wider bg-gold/10 text-gold border border-gold/30 px-3 py-1.5 rounded-lg hover:bg-gold/20 transition-all">
-            + Subir Maqueta
-        </button>
+    
+    <div class="flex flex-col items-center text-center pb-2 border-b border-gray-800/60">
+        <img src="logo.png" alt="Logo" class="h-12 w-auto object-contain mb-3 brightness-0 invert opacity-90">
+        <div class="flex justify-between items-center w-full">
+            <h3 class="text-gold font-bold uppercase text-xs tracking-widest">- Album nuevo 2026</h3>
+            <button id="btn-nueva-maqueta" onclick="toggleFormMaqueta()" class="hidden text-[9px] uppercase tracking-wider bg-gold/10 text-gold border border-gold/30 px-3 py-1.5 rounded-lg hover:bg-gold/20 transition-all">
+                + Subir Maqueta
+            </button>
+        </div>
     </div>
 
     <div id="form-subir-maqueta" class="hidden bg-[#121212] p-4 rounded-xl border border-gray-800 space-y-4">
@@ -133,9 +137,8 @@ window.storage = storage;
 
 let currentUser = null;
 
-// Lista de correos autorizados para subir maquetas / voice notes
 const EMAILS_AUTORIZADOS_MAQUETAS = [
-    "tucorreo@ejemplo.com", // <-- REEMPLAZA ESTO CON LOS CORREOS DE TU GRUPO
+    "tucorreo@ejemplo.com", 
     "lider@ejemplo.com"
 ];
 
@@ -255,33 +258,36 @@ async function cargarMaquetas() {
         lista.sort((a, b) => new Date(b.fechaRegistro) - new Date(a.fechaRegistro));
 
         let html = '';
-        lista.forEach((m) => {
+        lista.forEach((m, i) => {
             const maquetaId = `maqueta-${m.id}`;
             const fechaFormateada = m.fechaRegistro ? new Date(m.fechaRegistro).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '';
 
             html += `
-            <div class="bg-[#121212] border border-gray-800 rounded-lg p-4 shadow-md">
-                <div class="flex justify-between items-start mb-2">
+            <div class="bg-[#121212] border border-gray-800 rounded-lg shadow-md overflow-hidden">
+                <button onclick="window.toggleAcordeon('${maquetaId}'); event.stopPropagation();" class="w-full p-4 flex justify-between items-center text-left hover:bg-[#161616] transition">
                     <div>
-                        <h4 class="text-white font-bold text-xs uppercase tracking-wider">${m.titulo}</h4>
+                        <h4 class="text-white font-bold text-xs uppercase tracking-wider">${i + 1}. ${m.titulo}</h4>
                         <p class="text-[9px] text-gray-500 mt-0.5">Subido por: <span class="text-gold">${m.autor || 'Equipo'}</span> ${fechaFormateada ? '· ' + fechaFormateada : ''}</p>
                     </div>
-                </div>
+                    <span class="text-[10px] text-gray-400 opacity-60">▼</span>
+                </button>
 
-                ${m.descripcion ? `<p class="text-[11px] text-gray-300 mt-2 mb-3 leading-relaxed whitespace-pre-line">${m.descripcion}</p>` : ''}
+                <div id="${maquetaId}" class="acordeon-contenido hidden pb-4 px-4 pt-2 border-t border-gray-800/60 bg-transparent">
+                    ${m.descripcion ? `<p class="text-[11px] text-gray-300 mb-4 leading-relaxed whitespace-pre-line">${m.descripcion}</p>` : ''}
 
-                <div class="mt-3 pt-2 border-t border-gray-900">
-                    <input type="range" id="progress-${maquetaId}" value="0" max="100" class="w-full h-1 bg-gray-800 rounded-full appearance-none cursor-pointer accent-gold mb-3">
-                    <div class="flex items-center justify-between px-1">
-                        <button onclick="window.controlAudio('mute', '${maquetaId}'); event.stopPropagation();" class="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white transition-colors">
-                            <img id="icon-volumen-${maquetaId}" src="sound.png" class="w-4 h-4 invert brightness-200">
-                        </button>
-                        <button onclick="window.controlAudio('play', '${maquetaId}'); event.stopPropagation();" class="w-10 h-10 flex items-center justify-center bg-white rounded-full hover:scale-105 transition-transform shadow-none">
-                            <span id="icon-play-${maquetaId}" class="text-sm text-black" style="margin-left: 2px;">▶</span>
-                        </button>
-                        <div id="time-display-${maquetaId}" class="w-10 text-right text-[10px] font-mono text-white/30">0:00</div>
+                    <div class="mt-2 pt-2">
+                        <input type="range" id="progress-${maquetaId}" value="0" max="100" class="w-full h-1 bg-gray-800 rounded-full appearance-none cursor-pointer accent-gold mb-3">
+                        <div class="flex items-center justify-between px-1">
+                            <button onclick="window.controlAudio('mute', '${maquetaId}'); event.stopPropagation();" class="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                                <img id="icon-volumen-${maquetaId}" src="sound.png" class="w-4 h-4 invert brightness-200">
+                            </button>
+                            <button onclick="window.controlAudio('play', '${maquetaId}'); event.stopPropagation();" class="w-10 h-10 flex items-center justify-center bg-white rounded-full hover:scale-105 transition-transform shadow-none">
+                                <span id="icon-play-${maquetaId}" class="text-sm text-black" style="margin-left: 2px;">▶</span>
+                            </button>
+                            <div id="time-display-${maquetaId}" class="w-10 text-right text-[10px] font-mono text-white/30">0:00</div>
+                        </div>
+                        <audio id="audio-${maquetaId}" src="${m.audioUrl}"></audio>
                     </div>
-                    <audio id="audio-${maquetaId}" src="${m.audioUrl}"></audio>
                 </div>
             </div>
             `;
@@ -293,6 +299,22 @@ async function cargarMaquetas() {
         contenedor.innerHTML = '<p class="text-red-500 text-xs text-center py-6">Error al cargar las maquetas.</p>';
     }
 }
+
+window.toggleAcordeon = function(idSeleccionado) {
+    const todosLosContenidos = document.querySelectorAll('.acordeon-contenido');
+    const elementoAActivar = document.getElementById(idSeleccionado);
+
+    if (!elementoAActivar.classList.contains('hidden')) {
+        elementoAActivar.classList.add('hidden');
+        return;
+    }
+
+    todosLosContenidos.forEach(el => {
+        el.classList.add('hidden');
+    });
+
+    elementoAActivar.classList.remove('hidden');
+};
 
 window.controlAudio = (accion, id) => {
     const audio = document.getElementById(`audio-${id}`);
