@@ -39,9 +39,9 @@
     <div id="login-view" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black">
         <div class="relative w-full max-w-[280px] flex flex-col items-center">
             <img src="logodeep.png" class="h-32 w-auto mb-10 brightness-[10] drop-shadow-[0_0_20px_rgba(255,255,255,0.8)]">
-            <input type="email" id="login-email" placeholder="Correo electrónico" 
+            <input type="password" id="login-password" placeholder="Contraseña de acceso" 
        onkeydown="if(event.key === 'Enter') window.loginVoluntario()"
-       class="w-full bg-transparent border-b border-gray-600 text-white text-center pb-2 mb-6 outline-none focus:border-white text-sm">
+       class="w-full bg-transparent border-b border-gray-600 text-white text-center pb-2 mb-6 outline-none focus:border-white text-sm tracking-widest">
             <button type="button" onclick="window.loginVoluntario()" class="text-[10px] uppercase tracking-[0.4em] text-gray-400 hover:text-white transition-all">
                 Ingresar al Área de Música
             </button>
@@ -142,31 +142,23 @@ const EMAILS_AUTORIZADOS_MAQUETAS = [
     "lider@ejemplo.com"
 ];
 
-window.loginVoluntario = async () => {
-    const emailInput = document.getElementById('login-email').value.toLowerCase().trim();
-    if (!emailInput) return alert("Ingresa un correo");
-
-    try {
-        const q = query(collection(db, "voluntarios"), where("email", "==", emailInput));
-        const snap = await getDocs(q);
-
-        if (!snap.empty) {
-            currentUser = { id: snap.docs[0].id, ...snap.docs[0].data() };
-            
-            localStorage.setItem('deep_user_email', emailInput);
-            
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('panel-view').classList.remove('hidden');
-            
-            verificarPermisoMaquetas(emailInput);
-            cargarMaquetas();
-            
-        } else {
-            alert("Correo no encontrado.");
-        }
-    } catch (err) {
-        console.error("Error al buscar:", err);
-        alert("Error de conexión.");
+window.loginVoluntario = () => {
+    const passwordInput = document.getElementById('login-password').value.trim();
+    
+    if (passwordInput === "CDDM2026") {
+        // Guardamos sesión local para que no pida contraseña cada vez que recargue
+        localStorage.setItem('deep_auth_session', 'true');
+        
+        document.getElementById('login-view').classList.add('hidden');
+        document.getElementById('panel-view').classList.remove('hidden');
+        
+        // Al ingresar por contraseña general, permitimos ver y subir maquetas
+        const btnSubir = document.getElementById('btn-nueva-maqueta');
+        if (btnSubir) btnSubir.classList.remove('hidden');
+        
+        cargarMaquetas();
+    } else {
+        alert("Contraseña incorrecta.");
     }
 };
 
@@ -325,6 +317,20 @@ window.controlAudio = (accion, id) => {
 
     if (accion === 'play') {
         if (audio.paused) {
+            // Detener todos los demás audios y resetear sus botones e iconos
+            document.querySelectorAll('audio').forEach(el => {
+                if (el.id !== `audio-${id}`) {
+                    el.pause();
+                    el.currentTime = 0;
+                    const otherId = el.id.replace('audio-', '');
+                    const otherIcon = document.getElementById(`icon-play-${otherId}`);
+                    if (otherIcon) {
+                        otherIcon.innerText = "▶";
+                        otherIcon.style.fontSize = "16px";
+                    }
+                }
+            });
+
             audio.play();
             playIcon.innerText = "❚❚"; 
             playIcon.style.fontSize = "14px";
@@ -354,10 +360,15 @@ window.controlAudio = (accion, id) => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    const emailGuardado = localStorage.getItem('deep_user_email');
-    if (emailGuardado) {
-        document.getElementById('login-email').value = emailGuardado;
-        window.loginVoluntario();
+    const sesionActiva = localStorage.getItem('deep_auth_session');
+    if (sesionActiva === 'true') {
+        document.getElementById('login-view').classList.add('hidden');
+        document.getElementById('panel-view').classList.remove('hidden');
+        
+        const btnSubir = document.getElementById('btn-nueva-maqueta');
+        if (btnSubir) btnSubir.classList.remove('hidden');
+        
+        cargarMaquetas();
     }
 });
 
